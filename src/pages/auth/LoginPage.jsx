@@ -16,21 +16,18 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       const data = await login(phone, password);
-      toast.success('مرحباً بك في عيادة نورس');
+      const role = data.user?.role;
       
-      // توجيه حسب الدور
-      const role = data.user.role;
-      if (role === 'doctor') {
-        navigate('/dashboard');
-      } else if (role === 'nurse') {
+      toast.success(`مرحباً ${data.user?.full_name}`);
+      
+      if (role === 'nurse') {
         navigate('/appointments');
-      } else if (role === 'admin') {
-        navigate('/dashboard');
       } else {
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'رقم الهاتف أو كلمة المرور غير صحيحة');
+      const msg = error.response?.data?.message || 'رقم الهاتف أو كلمة المرور غير صحيحة';
+      toast.error(msg);
     }
   };
 
@@ -58,18 +55,10 @@ export default function LoginPage() {
 
       <div className="mt-6 p-4 bg-[#F2EFEE] rounded-2xl text-xs space-y-1.5">
         <p className="font-semibold text-[#153751] mb-2">بيانات تجريبية</p>
-        <p className="text-[#7E8991]">
-          <Phone className="w-3 h-3 inline ml-1" /> طبيبة: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777123456</code>
-        </p>
-        <p className="text-[#7E8991]">
-          <Phone className="w-3 h-3 inline ml-1" /> ممرضة: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777987654</code>
-        </p>
-        <p className="text-[#7E8991]">
-          <Phone className="w-3 h-3 inline ml-1" /> مدير: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777555555</code>
-        </p>
-        <p className="text-[#7E8991] mt-1">
-          <Lock className="w-3 h-3 inline ml-1" /> كلمة المرور: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">password123</code>
-        </p>
+        <p className="text-[#7E8991]">طبيبة: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777123456</code></p>
+        <p className="text-[#7E8991]">ممرضة: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777987654</code></p>
+        <p className="text-[#7E8991]">مدير: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777555555</code></p>
+        <p className="text-[#7E8991] mt-1">كلمة المرور: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">password123</code></p>
       </div>
     </div>
   );

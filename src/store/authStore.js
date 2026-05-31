@@ -30,19 +30,10 @@ export const useAuthStore = create(
       logout: async () => {
         try {
           const token = get().token;
-          if (token) {
-            await api.post('/logout');
-          }
-        } catch (e) {
-          // ignore
-        } finally {
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-          });
-          localStorage.removeItem('nawras-auth');
-        }
+          if (token) await api.post('/logout');
+        } catch (e) {}
+        set({ user: null, token: null, isAuthenticated: false });
+        localStorage.removeItem('nawras-auth');
       },
     }),
     {
