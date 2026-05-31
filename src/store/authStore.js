@@ -4,7 +4,7 @@ import api from '../services/api';
 
 export const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -28,8 +28,21 @@ export const useAuthStore = create(
       },
 
       logout: async () => {
-        try { await api.post('/logout'); } catch (e) {}
-        set({ user: null, token: null, isAuthenticated: false });
+        try {
+          const token = get().token;
+          if (token) {
+            await api.post('/logout');
+          }
+        } catch (e) {
+          // ignore
+        } finally {
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          });
+          localStorage.removeItem('nawras-auth');
+        }
       },
     }),
     {
