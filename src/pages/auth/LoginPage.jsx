@@ -15,9 +15,20 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(phone, password);
+      const data = await login(phone, password);
       toast.success('مرحباً بك في عيادة نورس');
-      navigate('/dashboard');
+      
+      // توجيه حسب الدور
+      const role = data.user.role;
+      if (role === 'doctor') {
+        navigate('/dashboard');
+      } else if (role === 'nurse') {
+        navigate('/appointments');
+      } else if (role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'رقم الهاتف أو كلمة المرور غير صحيحة');
     }
@@ -48,33 +59,18 @@ export default function LoginPage() {
       <div className="mt-6 p-4 bg-[#F2EFEE] rounded-2xl text-xs space-y-1.5">
         <p className="font-semibold text-[#153751] mb-2">بيانات تجريبية</p>
         <p className="text-[#7E8991]">
-          <span className="inline-flex items-center gap-1"><UsersIcon className="w-3 h-3" /> طبيبة:</span>
-          <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono mx-1">777123456</code>
+          <Phone className="w-3 h-3 inline ml-1" /> طبيبة: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777123456</code>
         </p>
         <p className="text-[#7E8991]">
-          <span className="inline-flex items-center gap-1"><UsersIcon className="w-3 h-3" /> ممرضة:</span>
-          <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono mx-1">777987654</code>
+          <Phone className="w-3 h-3 inline ml-1" /> ممرضة: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777987654</code>
         </p>
         <p className="text-[#7E8991]">
-          <span className="inline-flex items-center gap-1"><UsersIcon className="w-3 h-3" /> مدير:</span>
-          <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono mx-1">777555555</code>
+          <Phone className="w-3 h-3 inline ml-1" /> مدير: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">777555555</code>
         </p>
         <p className="text-[#7E8991] mt-1">
-          <span className="inline-flex items-center gap-1"><Lock className="w-3 h-3" /> كلمة المرور:</span>
-          <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono mx-1">password123</code>
+          <Lock className="w-3 h-3 inline ml-1" /> كلمة المرور: <code className="bg-white px-2 py-0.5 rounded-lg text-[#153751] font-mono">password123</code>
         </p>
       </div>
     </div>
-  );
-}
-
-function UsersIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
   );
 }
