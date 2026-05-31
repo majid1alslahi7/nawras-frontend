@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #153751;
+  --primary-dark: #0F2B40;
+  --primary-light: #3D586C;
+  --accent: #1E5A78;
+  --medical-blue: #284861;
+  --soft-gray: #A09E9B;
+  --warm-gray: #C2C0BD;
+  --background: #F7F6F4;
+  --surface: #FFFFFF;
+  --surface-soft: #F2EFEE;
+  --text-main: #132D42;
+  --text-muted: #7E8991;
+  --border: #E9E5E3;
+  --success: #2E8B73;
+  --warning: #C89B3C;
+  --danger: #C85C5C;
+  --radius: 1rem;
+}
+
+* { border-color: var(--border); }
+
+body {
+  background-color: var(--background);
+  color: var(--text-main);
+  font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Tajawal', sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-soft); }
+::-webkit-scrollbar-thumb { background: var(--soft-gray); border-radius: 3px; }
+
+.glass { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); }
+.card-nawras { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; box-shadow: 0 12px 35px rgba(19,45,66,0.06); transition: all 0.3s ease; }
+.card-nawras:hover { box-shadow: 0 16px 45px rgba(19,45,66,0.1); transform: translateY(-2px); }
+.btn-nawras { background: var(--primary); color: white; border-radius: 16px; padding: 12px 24px; font-weight: 600; transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(21,55,81,0.2); cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn-nawras:hover { background: var(--primary-dark); box-shadow: 0 6px 20px rgba(21,55,81,0.3); transform: translateY(-1px); }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text-main); border-radius: 16px; padding: 12px 24px; font-weight: 500; transition: all 0.25s ease; cursor: pointer; }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); background: rgba(21,55,81,0.03); }
+.input-nawras { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 16px; transition: all 0.2s ease; width: 100%; font-family: inherit; color: var(--text-main); }
+.input-nawras:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(30,90,120,0.08); outline: none; }
+.badge-status { border-radius: 12px; padding: 6px 14px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.animate-pulse-medical { animation: pulse-medical 2.5s infinite; }
+@keyframes pulse-medical { 0%,100% { box-shadow: 0 0 0 0 rgba(30,90,120,0.4); } 50% { box-shadow: 0 0 0 12px rgba(30,90,120,0); } }
