@@ -1,22 +1,15 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-// تحديد baseURL حسب البيئة
-const isProduction = import.meta.env.PROD;
-const baseURL = isProduction
-  ? 'https://alssemam.live/api'
-  : '/api';
-
 const api = axios.create({
-  baseURL,
+  baseURL: 'https://alssemam.live/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: false,
+  withCredentials: true,
 });
 
-// إضافة التوكن تلقائياً
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {
@@ -25,7 +18,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// معالجة الأخطاء
 api.interceptors.response.use(
   (response) => response,
   (error) => {
