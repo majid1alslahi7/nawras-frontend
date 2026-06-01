@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -10,7 +9,6 @@ export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const { login, isLoading } = useAuthStore();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,19 +16,19 @@ export default function LoginPage() {
       const data = await login(phone, password);
       const role = data.user.role;
       
-      toast.success(`مرحباً ${data.user.full_name}`);
+      alert('تم الدخول: ' + data.user.full_name + ' - ' + role);
       
-      // توجيه مباشر - تأخير بسيط لضمان تحديث الحالة
-      setTimeout(() => {
-        if (role === 'nurse') {
-          window.location.href = '/appointments';
-        } else {
-          window.location.href = '/dashboard';
-        }
-      }, 100);
+      localStorage.setItem('nawras-token', data.token);
+      localStorage.setItem('nawras-user', JSON.stringify(data.user));
+      
+      if (role === 'nurse') {
+        window.location.replace('/appointments');
+      } else {
+        window.location.replace('/dashboard');
+      }
       
     } catch (error) {
-      toast.error(error.response?.data?.message || 'خطأ في تسجيل الدخول');
+      alert('خطأ: ' + (error.response?.data?.message || error.message));
     }
   };
 
