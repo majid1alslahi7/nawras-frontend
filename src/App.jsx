@@ -26,6 +26,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
           </Route>
@@ -40,7 +41,6 @@ export default function App() {
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
