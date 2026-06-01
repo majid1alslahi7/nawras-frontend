@@ -16,18 +16,21 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       const data = await login(phone, password);
-      const role = data.user?.role;
+      const role = data.user.role;
       
-      toast.success(`مرحباً ${data.user?.full_name}`);
+      toast.success(`مرحباً ${data.user.full_name}`);
       
-      if (role === 'nurse') {
-        navigate('/appointments');
-      } else {
-        navigate('/dashboard');
-      }
+      // توجيه مباشر - تأخير بسيط لضمان تحديث الحالة
+      setTimeout(() => {
+        if (role === 'nurse') {
+          window.location.href = '/appointments';
+        } else {
+          window.location.href = '/dashboard';
+        }
+      }, 100);
+      
     } catch (error) {
-      const msg = error.response?.data?.message || 'رقم الهاتف أو كلمة المرور غير صحيحة';
-      toast.error(msg);
+      toast.error(error.response?.data?.message || 'خطأ في تسجيل الدخول');
     }
   };
 

@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useAuthStore } from './store/authStore';
 import MainLayout from './components/layout/MainLayout';
 import AuthLayout from './components/layout/AuthLayout';
 import LoginPage from './pages/auth/LoginPage';
@@ -14,27 +13,11 @@ import TransactionsPage from './pages/transactions/TransactionsPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import SettingsPage from './pages/settings/SettingsPage';
 
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1, staleTime: 30000 } },
-});
+const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, roles }) {
-  const { isAuthenticated, user } = useAuthStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (roles && !roles.includes(user?.role)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
-}
-
-function GuestRoute({ children }) {
-  const { isAuthenticated } = useAuthStore();
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('nawras-token');
+  if (!token) return <Navigate to="/login" replace />;
   return children;
 }
 
@@ -44,22 +27,20 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<AuthLayout />}>
-            <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+            <Route path="/login" element={<LoginPage />} />
           </Route>
-
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientsPage />} />
             <Route path="/appointments" element={<AppointmentsPage />} />
-            <Route path="/visits" element={<ProtectedRoute roles={['doctor']}><VisitsPage /></ProtectedRoute>} />
-            <Route path="/lab" element={<ProtectedRoute roles={['doctor', 'nurse']}><LabPage /></ProtectedRoute>} />
-            <Route path="/prescriptions" element={<ProtectedRoute roles={['doctor']}><PrescriptionsPage /></ProtectedRoute>} />
-            <Route path="/transactions" element={<ProtectedRoute roles={['nurse', 'admin']}><TransactionsPage /></ProtectedRoute>} />
+            <Route path="/visits" element={<VisitsPage />} />
+            <Route path="/lab" element={<LabPage />} />
+            <Route path="/prescriptions" element={<PrescriptionsPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/settings" element={<ProtectedRoute roles={['admin']}><SettingsPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
-
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
