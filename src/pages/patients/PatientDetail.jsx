@@ -1,34 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useGetQuery } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { Edit, ArrowRight, Phone, MapPin, Calendar, User, Activity, Pill, FlaskConical, FileText } from 'lucide-react';
-import { formatDate } from '../../lib/utils';
+import { Edit, ArrowRight, User, Activity, Calendar, FlaskConical, Pill } from 'lucide-react';
+import { formatDate, statusStyles } from '../../lib/utils';
+import api from '../../services/api';
 
 export default function PatientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [tab, setTab] = useState('info');
-  const { data: patient, isLoading } = useGetQuery(['patient', id], `/patients/${id}`);
+  const [patient, setPatient] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (isLoading) return <div className="text-center py-12 text-[#7E8991]">جاري التحميل...</div>;
-  if (!patient?.data) return <div className="text-center py-12 text-[#7E8991]">المريض غير موجود</div>;
+  useEffect(() => {
+    api.get(`/patients/${id}`).then(({ data }) => {
+      setPatient(data.data || data);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [id]);
 
-  const p = patient.data;
+  if (loading) return <div className="text-center py-12 text-[#7E8991]">جاري التحميل...</div>;
+  if (!patient) return <div className="text-center py-12 text-[#7E8991]">المريض غير موجود</div>;
 
-  const tabs = [
-    { key: 'info', label: 'المعلومات', icon: User },
-    { key: 'medical', label: 'التاريخ الطبي', icon: Activity },
-    { key: 'visits', label: 'الزيارات', icon: Calendar },
-    { key: 'lab', label: 'الفحوصات', icon: FlaskConical },
-    { key: 'prescriptions', label: 'الوصفات', icon: Pill },
-  ];
+  const p = patient;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" icon={ArrowRight} onClick={() => navigate('/patients')}>العودة</Button>
@@ -45,97 +44,63 @@ export default function PatientDetail() {
         <Link to={`/patients/${id}/edit`}><Button icon={Edit}>تعديل</Button></Link>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 border-b border-[#E9E5E3] pb-2 overflow-x-auto">
-        {tabs.map((t) => (
+        {[{ key: 'info', label: 'المعلومات', icon: User }, { key: 'medical', label: 'التاريخ الطبي', icon: Activity }, { key: 'visits', label: 'الزيارات', icon: Calendar }, { key: 'lab', label: 'الفحوصات', icon: FlaskConical }, { key: 'prescriptions', label: 'الوصفات', icon: Pill }].map((t) => (
           <Button key={t.key} variant={tab === t.key ? 'primary' : 'ghost'} size="sm" onClick={() => setTab(t.key)} icon={t.icon}>{t.label}</Button>
         ))}
       </div>
 
-      {/* Info Tab */}
       {tab === 'info' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader><CardTitle className="text-[#153751]">المعلومات الشخصية</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between"><span className="text-[#7E8991]">الاسم</span><span className="font-medium">{p.full_name}</span></div>
-              <div className="flex justify-between"><span className="text-[#7E8991]">رقم الهاتف</span><span className="font-medium" dir="ltr">{p.phone}</span></div>
-              {p.phone2 && <div className="flex justify-between"><span className="text-[#7E8991]">رقم بديل</span><span className="font-medium" dir="ltr">{p.phone2}</span></div>}
-              <div className="flex justify-between"><span className="text-[#7E8991]">تاريخ الميلاد</span><span className="font-medium">{formatDate(p.birth_date)}</span></div>
-              <div className="flex justify-between"><span className="text-[#7E8991]">العمر</span><span className="font-medium">{p.age} سنة</span></div>
-              <div className="flex justify-between"><span className="text-[#7E8991]">الجنس</span><Badge>{p.gender}</Badge></div>
-              {p.blood_type && <div className="flex justify-between"><span className="text-[#7E8991]">فصيلة الدم</span><Badge variant="info">{p.blood_type}</Badge></div>}
-              {p.national_id && <div className="flex justify-between"><span className="text-[#7E8991]">رقم الهوية</span><span className="font-medium">{p.national_id}</span></div>}
-              {p.email && <div className="flex justify-between"><span className="text-[#7E8991]">البريد</span><span className="font-medium">{p.email}</span></div>}
-              {p.occupation && <div className="flex justify-between"><span className="text-[#7E8991]">المهنة</span><span className="font-medium">{p.occupation}</span></div>}
-              {p.marital_status && <div className="flex justify-between"><span className="text-[#7E8991]">الحالة</span><span className="font-medium">{p.marital_status}</span></div>}
-            </div>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="text-[#153751]">جهة الاتصال والعنوان</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              {p.emergency_contact?.name && <div className="flex justify-between"><span className="text-[#7E8991]">اسم جهة الاتصال</span><span className="font-medium">{p.emergency_contact.name}</span></div>}
-              {p.emergency_contact?.phone && <div className="flex justify-between"><span className="text-[#7E8991]">هاتف الطوارئ</span><span className="font-medium" dir="ltr">{p.emergency_contact.phone}</span></div>}
-              {p.address && <div className="flex justify-between"><span className="text-[#7E8991]">العنوان</span><span className="font-medium">{p.address}</span></div>}
-              {p.notes && <div><span className="text-[#7E8991] block mb-1">ملاحظات</span><p className="text-sm bg-[#F2EFEE] p-3 rounded-xl">{p.notes}</p></div>}
-            </div>
-          </Card>
+          <Card><CardHeader><CardTitle>معلومات شخصية</CardTitle></CardHeader><CardContent className="space-y-3">
+            <Row label="الاسم" value={p.full_name} /><Row label="الهاتف" value={p.phone} dir="ltr" />
+            {p.phone2 && <Row label="هاتف بديل" value={p.phone2} dir="ltr" />}
+            <Row label="تاريخ الميلاد" value={formatDate(p.birth_date)} /><Row label="العمر" value={`${p.age} سنة`} />
+            <Row label="الجنس" value={<Badge>{p.gender}</Badge>} />{p.blood_type && <Row label="فصيلة الدم" value={<Badge variant="info">{p.blood_type}</Badge>} />}
+          </CardContent></Card>
+          <Card><CardHeader><CardTitle>جهة اتصال وعنوان</CardTitle></CardHeader><CardContent className="space-y-3">
+            {p.emergency_contact?.name && <Row label="اسم جهة الاتصال" value={p.emergency_contact.name} />}
+            {p.emergency_contact?.phone && <Row label="هاتف الطوارئ" value={p.emergency_contact.phone} dir="ltr" />}
+            {p.address && <Row label="العنوان" value={p.address} />}
+            {p.notes && <div><span className="text-[#7E8991] block mb-1">ملاحظات</span><p className="bg-[#F2EFEE] p-3 rounded-xl text-sm">{p.notes}</p></div>}
+          </CardContent></Card>
         </div>
       )}
 
-      {/* Medical History Tab */}
       {tab === 'medical' && (
-        <Card>
-          <CardHeader><CardTitle className="text-[#153751]">التاريخ الطبي</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {[
-              ['الأمراض المزمنة', p.medical_history?.chronic_diseases],
-              ['الحساسية', p.medical_history?.allergies],
-              ['العمليات السابقة', p.medical_history?.previous_surgeries],
-              ['الأدوية الحالية', p.medical_history?.current_medications],
-              ['التاريخ العائلي', p.medical_history?.family_history],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <p className="text-sm text-[#7E8991] mb-1">{label}</p>
-                <p className="bg-[#F2EFEE] p-3 rounded-xl text-sm">{value || 'لا يوجد'}</p>
-              </div>
-            ))}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-3 bg-[#F2EFEE] rounded-xl">
-                <p className="text-xs text-[#7E8991]">التدخين</p>
-                <p className="font-semibold">{p.medical_history?.smoking_status || '-'}</p>
-              </div>
-              {p.medical_history?.height_cm && <div className="text-center p-3 bg-[#F2EFEE] rounded-xl"><p className="text-xs text-[#7E8991]">الطول</p><p className="font-semibold">{p.medical_history.height_cm} سم</p></div>}
-              {p.medical_history?.weight_kg && <div className="text-center p-3 bg-[#F2EFEE] rounded-xl"><p className="text-xs text-[#7E8991]">الوزن</p><p className="font-semibold">{p.medical_history.weight_kg} كغ</p></div>}
-            </div>
-          </CardContent>
-        </Card>
+        <Card><CardHeader><CardTitle>التاريخ الطبي</CardTitle></CardHeader><CardContent className="space-y-4">
+          {[['الأمراض المزمنة', p.medical_history?.chronic_diseases], ['الحساسية', p.medical_history?.allergies], ['العمليات السابقة', p.medical_history?.previous_surgeries], ['الأدوية الحالية', p.medical_history?.current_medications]].map(([l, v]) => <div key={l}><p className="text-sm text-[#7E8991] mb-1">{l}</p><p className="bg-[#F2EFEE] p-3 rounded-xl text-sm">{v || 'لا يوجد'}</p></div>)}
+        </CardContent></Card>
       )}
 
-      {/* Visits Tab */}
-      {tab === 'visits' && (
-        <div className="space-y-3">
-          {p.recent_visits?.map((v) => (
-            <Card key={v.id} hover>
-              <CardContent className="p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{formatDate(v.visit_date)}</p>
-                  <p className="text-sm text-[#7E8991]">{v.diagnosis_final || v.chief_complaint}</p>
-                </div>
-                <Badge>{v.status}</Badge>
-              </CardContent>
-            </Card>
-          ))}
-          {(!p.recent_visits || p.recent_visits.length === 0) && <p className="text-center text-[#7E8991] py-8">لا توجد زيارات</p>}
-        </div>
-      )}
-
-      {/* Lab Tab */}
-      {tab === 'lab' && <p className="text-center text-[#7E8991] py-8">قسم الفحوصات قيد التطوير</p>}
-
-      {/* Prescriptions Tab */}
-      {tab === 'prescriptions' && <p className="text-center text-[#7E8991] py-8">قسم الوصفات قيد التطوير</p>}
+      {tab === 'visits' && <PatientVisits patientId={id} />}
+      {tab === 'lab' && <PatientLab patientId={id} />}
+      {tab === 'prescriptions' && <PatientPrescriptions patientId={id} />}
     </div>
   );
+}
+
+function Row({ label, value, dir }) {
+  return <div className="flex justify-between items-center"><span className="text-[#7E8991] text-sm">{label}</span><span className={`font-medium ${dir === 'ltr' ? 'dir-ltr text-left' : ''}`}>{value}</span></div>;
+}
+
+function PatientVisits({ patientId }) {
+  const [visits, setVisits] = useState([]);
+  useEffect(() => { api.get(`/visits?patient_id=${patientId}&per_page=50`).then(({ data }) => setVisits(data.data || data)); }, [patientId]);
+  if (!visits.length) return <p className="text-center text-[#7E8991] py-8">لا توجد زيارات</p>;
+  return <div className="space-y-2">{visits.map((v) => <Card key={v.id} hover><CardContent className="p-4 flex justify-between"><div><p className="font-medium">{formatDate(v.visit_date)}</p><p className="text-sm text-[#7E8991]">{v.diagnosis_final || v.chief_complaint}</p></div><Badge className={statusStyles[v.status]}>{v.status}</Badge></CardContent></Card>)}</div>;
+}
+
+function PatientLab({ patientId }) {
+  const [requests, setRequests] = useState([]);
+  useEffect(() => { api.get(`/lab-requests?patient_id=${patientId}`).then(({ data }) => setRequests(data.data || data)); }, [patientId]);
+  if (!requests.length) return <p className="text-center text-[#7E8991] py-8">لا توجد فحوصات</p>;
+  return <div className="space-y-2">{requests.map((r) => <Card key={r.id} hover><CardContent className="p-4 flex justify-between"><div><p className="font-medium">{formatDate(r.request_date)}</p><p className="text-sm text-[#7E8991]">{r.tests_list?.map(t => t.test_name).join('، ')}</p></div><Badge className={statusStyles[r.status]}>{r.status}</Badge></CardContent></Card>)}</div>;
+}
+
+function PatientPrescriptions({ patientId }) {
+  const [rx, setRx] = useState([]);
+  useEffect(() => { api.get(`/prescriptions?patient_id=${patientId}`).then(({ data }) => setRx(data.data || data)); }, [patientId]);
+  if (!rx.length) return <p className="text-center text-[#7E8991] py-8">لا توجد وصفات</p>;
+  return <div className="space-y-2">{rx.map((r) => <Card key={r.id} hover><CardContent className="p-4 flex justify-between"><div><p className="font-medium">{formatDate(r.prescription_date)}</p><p className="text-sm text-[#7E8991]">{r.diagnosis}</p></div><Badge variant="muted">{r.items?.length || 0} أدوية</Badge></CardContent></Card>)}</div>;
 }
