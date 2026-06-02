@@ -5,6 +5,7 @@ import AuthLayout from './components/layout/AuthLayout';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import PatientsPage from './pages/patients/PatientsPage';
+import PatientDetail from './pages/patients/PatientDetail';
 import PatientForm from './pages/patients/PatientForm';
 import AppointmentsPage from './pages/appointments/AppointmentsPage';
 import VisitsPage from './pages/visits/VisitsPage';
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientsPage />} />
             <Route path="/patients/new" element={<PatientForm />} />
+            <Route path="/patients/:id" element={<PatientDetail />} />
             <Route path="/patients/:id/edit" element={<PatientForm />} />
             <Route path="/appointments" element={<AppointmentsPage />} />
             <Route path="/visits" element={<VisitsPage />} />
