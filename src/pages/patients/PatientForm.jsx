@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight } from 'lucide-react';
 
 export default function PatientForm() {
@@ -63,7 +64,6 @@ export default function PatientForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* المعلومات الأساسية */}
         <Card>
           <CardHeader><CardTitle className="text-[#153751]">المعلومات الأساسية</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -74,9 +74,7 @@ export default function PatientForm() {
               <div><label className="block text-sm font-medium mb-1">تاريخ الميلاد</label><Input type="date" value={form.birth_date} onChange={e => updateField('birth_date', e.target.value)} /></div>
               <div>
                 <label className="block text-sm font-medium mb-1">الجنس</label>
-                <Select value={form.gender} onChange={e => updateField('gender', e.target.value)}>
-                  <option value="">اختر...</option><option value="ذكر">ذكر</option><option value="أنثى">أنثى</option>
-                </Select>
+                <Select value={form.gender} onChange={e => updateField('gender', e.target.value)}><option value="">اختر...</option><option value="ذكر">ذكر</option><option value="أنثى">أنثى</option></Select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">فصيلة الدم</label>
@@ -91,8 +89,7 @@ export default function PatientForm() {
               <div>
                 <label className="block text-sm font-medium mb-1">الحالة الاجتماعية</label>
                 <Select value={form.marital_status} onChange={e => updateField('marital_status', e.target.value)}>
-                  <option value="">اختر...</option>
-                  <option value="أعزب">أعزب</option><option value="متزوج">متزوج</option><option value="مطلق">مطلق</option><option value="أرمل">أرمل</option>
+                  <option value="">اختر...</option><option value="أعزب">أعزب</option><option value="متزوج">متزوج</option><option value="مطلق">مطلق</option><option value="أرمل">أرمل</option>
                 </Select>
               </div>
               <div className="md:col-span-2"><label className="block text-sm font-medium mb-1">العنوان</label><Input value={form.address} onChange={e => updateField('address', e.target.value)} /></div>
@@ -100,7 +97,6 @@ export default function PatientForm() {
           </CardContent>
         </Card>
 
-        {/* جهة اتصال الطوارئ */}
         <Card>
           <CardHeader><CardTitle className="text-[#153751]">جهة اتصال الطوارئ</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -109,7 +105,6 @@ export default function PatientForm() {
           </CardContent>
         </Card>
 
-        {/* التاريخ الطبي */}
         <Card>
           <CardHeader><CardTitle className="text-[#153751]">التاريخ الطبي</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -126,12 +121,9 @@ export default function PatientForm() {
           </CardContent>
         </Card>
 
-        {/* ملاحظات */}
         <Card>
           <CardHeader><CardTitle className="text-[#153751]">ملاحظات</CardTitle></CardHeader>
-          <CardContent>
-            <Input value={form.notes} onChange={e => updateField('notes', e.target.value)} placeholder="ملاحظات عامة..." />
-          </CardContent>
+          <CardContent><Input value={form.notes} onChange={e => updateField('notes', e.target.value)} placeholder="ملاحظات عامة..." /></CardContent>
         </Card>
 
         <div className="flex gap-3 justify-end">
