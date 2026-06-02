@@ -3,11 +3,9 @@ import { useGetQuery, useMutate } from '../../hooks/useApi';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Select } from '../../components/ui/Select';
 import { Badge } from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import SmartSelect from '../../components/ui/SmartSelect';
-import { Plus, Search, Calendar, Phone, X, CreditCard, CheckCircle } from 'lucide-react';
+import { Plus, Search, Phone, X, CreditCard, CheckCircle, Users } from 'lucide-react';
 import { formatDate, formatTime } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
 
@@ -17,42 +15,50 @@ export default function AppointmentsPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(isNurse ? 'unpaid' : 'doctor');
   const [showModal, setShowModal] = useState(false);
+  const [showPaidPatients, setShowPaidPatients] = useState(false);
+  const [searchPaid, setSearchPaid] = useState('');
   const [form, setForm] = useState({ patient_id: '', appointment_date: '', appointment_time: '', visit_reason: '', visit_type: 'كشف جديد' });
 
   const endpoint = filter === 'unpaid' ? '/appointments/unpaid' : filter === 'doctor' ? '/appointments/doctor-view' : '/appointments';
   const { data, isLoading } = useGetQuery(['appointments', { search, filter }], `${endpoint}?search=${search}&per_page=50`);
 
+  // قائمة المرضى المدفوعين
+  const { data: paidPatients } = useGetQuery(
+    showPaidPatients ? ['paid-patients', searchPaid] : null,
+    showPaidPatients ? `/appointments/paid-patients?search=${searchPaid}` : null
+  );
+
   const createAppointment = useMutate('post', '/appointments', {
     invalidate: 'appointments',
     successMessage: 'تم حجز الموعد',
-    onSuccess: () => setShowModal(false),
+    onSuccess: () => { setShowModal(false); setShowPaidPatients(false); },
   });
 
   const payAppointment = useMutate('post', '/transactions', {
     invalidate: 'appointments',
     successMessage: 'تم تسجيل الدفع',
+    onSuccess: () => window.location.reload(),
   });
 
   const handlePay = (appt) => {
-    const amount = prompt('المبلغ:', '5000');
+    const amount = prompt('المبلغ (﷼):', '5000');
     if (amount) {
       payAppointment.mutate({
         category_id: 1,
-        patient_id: appt.patient_id,
+        patient_id: appt.patient_id || appt.patient?.id,
         amount: Number(amount),
         total_amount: Number(amount),
         type: 'إيراد',
         payment_method: 'نقدي',
-        description: 'سند معاينة - ' + appt.patient?.full_name,
+        description: 'سند معاينة - ' + (appt.patient?.full_name || appt.full_name),
         receipt_type: 'appointment_receipt',
       });
-      // تحديث الموعد
-      fetch(`https://nawrasb.alssemam.com/api/appointments/${appt.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_paid: true, status: 'مؤكد', free_until: new Date(Date.now() + 7*86400000).toISOString().split('T')[0] }),
-      }).then(() => window.location.reload());
     }
+  };
+
+  const selectPaidPatient = (patient) => {
+    setForm({ ...form, patient_id: patient.id });
+    setShowPaidPatients(false);
   };
 
   return (
@@ -62,7 +68,7 @@ export default function AppointmentsPage() {
         {isNurse && <Button icon={Plus} onClick={() => setShowModal(true)}>حجز موعد</Button>}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {isNurse && <Button variant={filter === 'unpaid' ? 'primary' : 'outline'} size="sm" onClick={() => setFilter('unpaid')}>⏳ بانتظار الدفع</Button>}
         <Button variant={filter === 'doctor' ? 'primary' : 'outline'} size="sm" onClick={() => setFilter('doctor')}>📋 مواعيد اليوم</Button>
         <Button variant={filter === 'all' ? 'primary' : 'outline'} size="sm" onClick={() => setFilter('all')}>📅 الكل</Button>
@@ -79,16 +85,17 @@ export default function AppointmentsPage() {
                     <p className="text-xs text-[#7E8991]">{formatDate(appt.appointment_date)}</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[#132D42]">{appt.patient?.full_name}</h3>
+                    <h3 className="font-semibold text-[#132D42]">{appt.patient?.full_name || appt.full_name}</h3>
                     <div className="flex items-center gap-2 text-sm text-[#7E8991] mt-1">
-                      <Phone className="w-3 h-3" /> {appt.patient?.phone}
+                      <Phone className="w-3 h-3" /> {appt.patient?.phone || appt.phone}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  {appt.is_free && <Badge variant="success">مجاني</Badge>}
-                  <Badge className={appt.status === 'pending_payment' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}>
-                    {appt.status === 'pending_payment' ? 'بانتظار الدفع' : appt.status}
+                  {appt.is_free && <Badge variant="success">🆓 مجاني</Badge>}
+                  {appt.has_valid_receipt && <Badge variant="info">✅ سند ساري</Badge>}
+                  <Badge className={appt.status === 'pending_payment' || !appt.is_paid ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}>
+                    {!appt.is_paid ? '⏳ بانتظار الدفع' : appt.status}
                   </Badge>
                   {isNurse && !appt.is_paid && (
                     <Button variant="success" size="sm" icon={CreditCard} onClick={() => handlePay(appt)}>دفع</Button>
@@ -100,22 +107,55 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="حجز موعد جديد" size="lg">
-        <form onSubmit={(e) => { e.preventDefault(); createAppointment.mutate(form); }} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">المريض *</label>
-            <SmartSelect endpoint="/patients/dropdown" value={form.patient_id} onChange={(v) => setForm({ ...form, patient_id: v })} placeholder="ابحث عن مريض..." displayField="full_name" valueField="id" secondaryField="phone" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium mb-1">التاريخ *</label><Input type="date" value={form.appointment_date} onChange={(e) => setForm({ ...form, appointment_date: e.target.value })} required /></div>
-            <div><label className="block text-sm font-medium mb-1">الوقت *</label><Input type="time" value={form.appointment_time} onChange={(e) => setForm({ ...form, appointment_time: e.target.value })} required /></div>
-          </div>
-          <div><label className="block text-sm font-medium mb-1">سبب الزيارة *</label><Input value={form.visit_reason} onChange={(e) => setForm({ ...form, visit_reason: e.target.value })} required /></div>
-          <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => setShowModal(false)} icon={X}>إلغاء</Button>
-            <Button type="submit" icon={Plus}>حجز</Button>
-          </div>
-        </form>
+      {/* Modal حجز موعد */}
+      <Modal open={showModal} onClose={() => { setShowModal(false); setShowPaidPatients(false); }} title="حجز موعد جديد" size="lg">
+        <div className="space-y-4">
+          {/* زر إضافة مريض من المواعيد المدفوعة */}
+          <Button variant="outline" icon={Users} onClick={() => setShowPaidPatients(!showPaidPatients)} className="w-full">
+            {showPaidPatients ? 'إخفاء القائمة' : 'اختيار مريض من المواعيد المدفوعة'}
+          </Button>
+
+          {showPaidPatients && (
+            <div className="border border-[#E9E5E3] rounded-2xl p-3 space-y-2 max-h-48 overflow-y-auto">
+              <Input
+                value={searchPaid}
+                onChange={(e) => setSearchPaid(e.target.value)}
+                placeholder="بحث عن مريض..."
+                icon={Search}
+              />
+              {paidPatients?.data?.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => selectPaidPatient(p)}
+                  className={`w-full text-right p-3 rounded-xl hover:bg-[#F2EFEE] ${form.patient_id === p.id ? 'bg-[#153751]/10 border border-[#153751]' : ''}`}
+                >
+                  <p className="font-medium text-sm">{p.full_name}</p>
+                  <p className="text-xs text-[#7E8991]">
+                    📞 {p.phone} | 📅 {p.appointment_date} | 🏷️ {p.visit_reason}
+                  </p>
+                  {p.has_valid_receipt && <Badge variant="success" className="mt-1">✅ سند ساري حتى {p.free_until}</Badge>}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={(e) => { e.preventDefault(); createAppointment.mutate(form); }} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">المريض *</label>
+              <Input value={form.patient_id} onChange={(e) => setForm({ ...form, patient_id: e.target.value })} placeholder="معرف المريض" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="block text-sm font-medium mb-1">التاريخ *</label><Input type="date" value={form.appointment_date} onChange={(e) => setForm({ ...form, appointment_date: e.target.value })} required /></div>
+              <div><label className="block text-sm font-medium mb-1">الوقت *</label><Input type="time" value={form.appointment_time} onChange={(e) => setForm({ ...form, appointment_time: e.target.value })} required /></div>
+            </div>
+            <div><label className="block text-sm font-medium mb-1">سبب الزيارة *</label><Input value={form.visit_reason} onChange={(e) => setForm({ ...form, visit_reason: e.target.value })} required /></div>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setShowModal(false)} icon={X}>إلغاء</Button>
+              <Button type="submit" icon={Plus}>حجز</Button>
+            </div>
+          </form>
+        </div>
       </Modal>
     </div>
   );
