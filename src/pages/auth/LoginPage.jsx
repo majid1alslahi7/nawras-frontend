@@ -4,6 +4,17 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { LogIn, Phone, Lock } from 'lucide-react';
 import NawrasLogo from '../../components/brand/NawrasLogo';
+import { actionToast } from '../../lib/actionToast';
+
+const roleLabels = {
+  doctor: 'طبيبة',
+  nurse: 'ممرضة',
+  admin: 'مدير',
+};
+
+function wait(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('');
@@ -15,11 +26,13 @@ export default function LoginPage() {
     try {
       const data = await login(phone, password);
       const role = data.user.role;
-      
-      alert('تم الدخول: ' + data.user.full_name + ' - ' + role);
-      
-      localStorage.setItem('nawras-token', data.token);
-      localStorage.setItem('nawras-user', JSON.stringify(data.user));
+
+      actionToast.success(`أهلاً ${data.user.full_name}، سيتم فتح النظام الآن.`, {
+        title: `تم تسجيل الدخول كـ ${roleLabels[role] || role}`,
+        duration: 1400,
+      });
+
+      await wait(900);
       
       if (role === 'nurse') {
         window.location.replace('/appointments');
@@ -28,7 +41,7 @@ export default function LoginPage() {
       }
       
     } catch (error) {
-      alert('خطأ: ' + (error.response?.data?.message || error.message));
+      actionToast.error(error);
     }
   };
 

@@ -6,7 +6,7 @@ import { ArrowRight, Printer, Pill } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
 import api from '../../services/api';
 import { openApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function PrescriptionDetail() {
   const { id } = useParams();

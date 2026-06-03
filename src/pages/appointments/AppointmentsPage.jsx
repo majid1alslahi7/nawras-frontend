@@ -11,7 +11,7 @@ import SmartSelect from '../../components/ui/SmartSelect';
 import { Plus, Search, Phone, X, CreditCard, Users, Eye } from 'lucide-react';
 import { formatDate, formatTime } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function AppointmentsPage() {
   const { user } = useAuthStore();
@@ -49,7 +49,7 @@ export default function AppointmentsPage() {
     const amount = prompt('المبلغ (﷼):', '5000');
     const category = categories?.find((item) => item.type === 'إيراد' && item.name_ar === 'كشف طبي') || categories?.find((item) => item.type === 'إيراد');
     if (!category) {
-      alert('لا يوجد تصنيف إيراد فعال لتسجيل السند');
+      toast.error('لا يوجد تصنيف إيراد فعال لتسجيل السند');
       return;
     }
     if (amount) {

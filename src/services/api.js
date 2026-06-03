@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://nawrasb.alssemam.com/api').replace(/\/+$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://nawras-backend.alssemam.com/api').replace(/\/+$/, '');
 
 export function apiUrl(path = '') {
   const cleanPath = String(path).replace(/^\/+/, '');
@@ -21,7 +21,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = String(error.config?.url || '');
+    const isLoginRequest = requestUrl.endsWith('/login') || requestUrl === 'login';
+    const isLoginPage = window.location.pathname === '/login';
+
+    if (error.response?.status === 401 && !isLoginRequest && !isLoginPage) {
       localStorage.removeItem('nawras-token');
       localStorage.removeItem('nawras-user');
       window.location.href = '/login';

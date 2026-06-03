@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Toaster } from 'sonner';
 import { Menu } from 'lucide-react';
 import { Button } from '../ui/Button';
 import NawrasLogo from '../brand/NawrasLogo';
+import ActionNotificationHost from '../ui/ActionNotificationHost';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,18 +22,7 @@ export default function MainLayout() {
           <Outlet />
         </main>
       </div>
-      <Toaster
-        position="top-left"
-        richColors
-        closeButton
-        dir="rtl"
-        toastOptions={{
-          style: {
-            fontFamily: 'IBM Plex Sans Arabic, Cairo, sans-serif',
-            borderRadius: '16px',
-          },
-        }}
-      />
+      <ActionNotificationHost />
     </div>
   );
 }

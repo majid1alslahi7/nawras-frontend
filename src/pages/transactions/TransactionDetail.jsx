@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { formatCurrency, formatDateTime } from '../../lib/utils';
 import { openApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function TransactionDetail() {
   const { id } = useParams();

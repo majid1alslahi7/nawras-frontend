@@ -8,7 +8,7 @@ import { Plus, FlaskConical, AlertTriangle, Upload, Printer, Eye } from 'lucide-
 import { formatDate, statusStyles } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
 import { openApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function LabPage() {
   const { user } = useAuthStore();

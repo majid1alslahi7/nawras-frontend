@@ -6,7 +6,7 @@ import { Select } from '../../components/ui/Select';
 import { TrendingUp, Users, Stethoscope, Download, Filter, FileSpreadsheet, FileText, Activity } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { downloadApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function ReportsPage() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);

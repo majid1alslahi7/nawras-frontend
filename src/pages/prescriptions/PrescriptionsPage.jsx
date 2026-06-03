@@ -8,7 +8,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Plus, Search, Pill, Printer } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
 import { openApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function PrescriptionsPage() {
   const [search, setSearch] = useState('');

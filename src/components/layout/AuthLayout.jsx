@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import ActionNotificationHost from '../ui/ActionNotificationHost';
 
 export default function AuthLayout() {
   return (
@@ -11,6 +12,7 @@ export default function AuthLayout() {
       <div className="relative z-10 w-full max-w-md">
         <Outlet />
       </div>
+      <ActionNotificationHost />
     </div>
   );
 }

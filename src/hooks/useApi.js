@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
-import { toast } from 'sonner';
+import { actionToast } from '../lib/actionToast';
 
 export function useGetQuery(key, url, options = {}) {
   const { enabled = true, ...queryOptions } = options;
@@ -31,14 +31,18 @@ export function useMutate(method, url, options = {}) {
       return data;
     },
     onSuccess: (data) => {
-      if (options.successMessage) toast.success(options.successMessage);
+      const successMessage = options.successMessage || data?.message;
+      if (successMessage) actionToast.success(successMessage, options.successTitle ? { title: options.successTitle } : undefined);
       if (options.invalidate) {
         (Array.isArray(options.invalidate) ? options.invalidate : [options.invalidate])
           .forEach(q => queryClient.invalidateQueries({ queryKey: [q] }));
       }
       if (options.onSuccess) options.onSuccess(data);
     },
-    onError: (error) => { toast.error(error.response?.data?.message || 'حدث خطأ'); if (options.onError) options.onError(error); },
+    onError: (error) => {
+      actionToast.error(error);
+      if (options.onError) options.onError(error);
+    },
   });
 
   return { ...mutation, isLoading: mutation.isPending };

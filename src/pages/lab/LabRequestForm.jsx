@@ -9,7 +9,7 @@ import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash, Printer } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { openApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 const TEST_TEMPLATES = {
   'دم': ['صورة دم كاملة (CBC)', 'سرعة ترسيب (ESR)', 'سكر صائم (FBS)', 'سكر تراكمي (HbA1c)', 'دهون ثلاثية', 'كوليسترول', 'فيتامين د', 'فيتامين B12'],

@@ -10,7 +10,7 @@ import SmartSelect from '../../components/ui/SmartSelect';
 import { TrendingUp, TrendingDown, Banknote, Printer, Eye } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { openApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function TransactionsPage() {
   const filter = 'today';

@@ -7,7 +7,7 @@ import { Input } from '../../components/ui/Input';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash } from 'lucide-react';
 import api from '../../services/api';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function LabResultForm() {
   const { requestId } = useParams();

@@ -7,7 +7,7 @@ import { ArrowRight, Printer, Stethoscope, Activity, Pill, FlaskConical } from '
 import { formatDateTime, statusStyles } from '../../lib/utils';
 import api from '../../services/api';
 import { openApiFile } from '../../lib/downloads';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function VisitDetail() {
   const { id } = useParams();

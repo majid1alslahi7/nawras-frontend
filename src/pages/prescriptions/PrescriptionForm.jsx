@@ -7,7 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash } from 'lucide-react';
-import { toast } from 'sonner';
+import { actionToast as toast } from '../../lib/actionToast';
 
 export default function PrescriptionForm() {
   const navigate = useNavigate();
