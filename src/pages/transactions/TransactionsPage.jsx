@@ -1,21 +1,24 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useGetQuery, useMutate } from '../../hooks/useApi';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import Modal from '../../components/ui/Modal';
-import { Plus, TrendingUp, TrendingDown, Banknote, Printer } from 'lucide-react';
+import SmartSelect from '../../components/ui/SmartSelect';
+import { TrendingUp, TrendingDown, Banknote, Printer, Eye } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import api from '../../services/api';
+import { apiUrl } from '../../services/api';
 
 export default function TransactionsPage() {
-  const [filter, setFilter] = useState('today');
+  const filter = 'today';
   const [tab, setTab] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('income');
   const [form, setForm] = useState({ category_id: '', patient_id: '', amount: '', payment_method: 'نقدي', description: '', notes: '' });
 
+  const { data: categories } = useGetQuery('categories', '/categories');
   const { data: daily } = useGetQuery('transactions-daily', '/transactions/summary/daily');
   const { data: incomeReceipts } = useGetQuery('receipts-income', '/receipts/income');
   const { data: expenseReceipts } = useGetQuery('receipts-expense', '/receipts/expense');
@@ -27,14 +30,23 @@ export default function TransactionsPage() {
     onSuccess: () => { setShowModal(false); setForm({ category_id: '', patient_id: '', amount: '', payment_method: 'نقدي', description: '', notes: '' }); },
   });
 
-  const openModal = (type) => { setModalType(type); setShowModal(true); };
+  const openModal = (type) => {
+    setModalType(type);
+    setForm({ category_id: '', patient_id: '', amount: '', payment_method: 'نقدي', description: '', notes: '' });
+    setShowModal(true);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    createTransaction.mutate({ ...form, type: modalType === 'income' ? 'إيراد' : 'مصروف', amount: Number(form.amount) });
+    createTransaction.mutate({
+      ...form,
+      type: modalType === 'income' ? 'إيراد' : 'مصروف',
+      receipt_type: modalType === 'income' ? 'income_receipt' : 'expense_receipt',
+      amount: Number(form.amount),
+    });
   };
 
-  const handlePrint = (id) => window.open(`https://nawrasb.alssemam.com/api/transactions/${id}/receipt`, '_blank');
+  const handlePrint = (id) => window.open(apiUrl(`/transactions/${id}/receipt`), '_blank');
 
   return (
     <div className="space-y-6">
@@ -71,15 +83,15 @@ export default function TransactionsPage() {
             <label className="block text-sm font-medium mb-1">التصنيف *</label>
             <Select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} required>
               <option value="">اختر التصنيف...</option>
-              {/* سنستخدم قائمة ثابتة لضمان العمل */}
-              <option value="1">كشف طبي</option><option value="2">كشف متابعة</option>
-              <option value="8">إيجار العيادة</option><option value="10">مستلزمات طبية</option>
+              {categories?.filter((category) => category.type === (modalType === 'income' ? 'إيراد' : 'مصروف')).map((category) => (
+                <option key={category.id} value={category.id}>{category.name_ar}</option>
+              ))}
             </Select>
           </div>
           {modalType === 'income' && (
             <div>
               <label className="block text-sm font-medium mb-1">المريض</label>
-              <Input value={form.patient_id} onChange={(e) => setForm({ ...form, patient_id: e.target.value })} placeholder="معرف المريض (اختياري)" />
+              <SmartSelect endpoint="/patients/dropdown" value={form.patient_id} onChange={(value) => setForm({ ...form, patient_id: value })} placeholder="ابحث عن مريض..." displayField="full_name" valueField="id" secondaryField="phone" />
             </div>
           )}
           <div className="grid grid-cols-2 gap-4">
@@ -119,14 +131,17 @@ function TransactionList({ data, onPrint }) {
       {data.map((txn) => (
         <Card key={txn.id} hover>
           <CardContent className="p-4 flex items-center justify-between">
-            <div>
+            <Link to={`/transactions/${txn.id}`} className="min-w-0 flex-1">
               <p className="font-medium text-[#132D42]">{txn.category?.name_ar || txn.description || 'معاملة'}</p>
               <p className="text-xs text-[#7E8991]">{formatDate(txn.transaction_date)} {txn.patient?.full_name ? `- ${txn.patient.full_name}` : ''}</p>
-            </div>
+            </Link>
             <div className="flex items-center gap-3">
               <span className={`font-bold ${txn.type === 'إيراد' ? 'text-[#2E8B73]' : 'text-[#C85C5C]'}`}>
                 {txn.type === 'إيراد' ? '+' : '-'}{formatCurrency(txn.total_amount)}
               </span>
+              <Link to={`/transactions/${txn.id}`}>
+                <Button variant="ghost" size="sm" icon={Eye} />
+              </Link>
               <Button variant="ghost" size="sm" icon={Printer} onClick={() => onPrint(txn.id)} />
             </div>
           </CardContent>

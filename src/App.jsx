@@ -8,15 +8,20 @@ import PatientsPage from './pages/patients/PatientsPage';
 import PatientForm from './pages/patients/PatientForm';
 import PatientDetail from './pages/patients/PatientDetail';
 import AppointmentsPage from './pages/appointments/AppointmentsPage';
+import AppointmentDetail from './pages/appointments/AppointmentDetail';
 import VisitsPage from './pages/visits/VisitsPage';
+import VisitForm from './pages/visits/VisitForm';
 import VisitDetail from './pages/visits/VisitDetail';
 import LabPage from './pages/lab/LabPage';
 import LabRequestForm from './pages/lab/LabRequestForm';
+import LabRequestDetail from './pages/lab/LabRequestDetail';
 import LabResultForm from './pages/lab/LabResultForm';
 import PrescriptionsPage from './pages/prescriptions/PrescriptionsPage';
+import PrescriptionForm from './pages/prescriptions/PrescriptionForm';
 import PrescriptionDetail from './pages/prescriptions/PrescriptionDetail';
 import TransactionsPage from './pages/transactions/TransactionsPage';
 import TransactionForm from './pages/transactions/TransactionForm';
+import TransactionDetail from './pages/transactions/TransactionDetail';
 import ReportsPage from './pages/reports/ReportsPage';
 import SettingsPage from './pages/settings/SettingsPage';
 
@@ -42,16 +47,21 @@ export default function App() {
             <Route path="/patients/:id" element={<PatientDetail />} />
             <Route path="/patients/:id/edit" element={<PatientForm />} />
             <Route path="/appointments" element={<AppointmentsPage />} />
+            <Route path="/appointments/:id" element={<AppointmentDetail />} />
             <Route path="/visits" element={<VisitsPage />} />
+            <Route path="/visits/new" element={<VisitForm />} />
             <Route path="/visits/:id" element={<VisitDetail />} />
             <Route path="/lab" element={<LabPage />} />
+            <Route path="/lab/requests/:id" element={<LabRequestDetail />} />
             <Route path="/lab/request/new" element={<LabRequestForm />} />
             <Route path="/lab/result/new" element={<LabResultForm />} />
             <Route path="/lab/result/new/:requestId" element={<LabResultForm />} />
             <Route path="/prescriptions" element={<PrescriptionsPage />} />
+            <Route path="/prescriptions/new" element={<PrescriptionForm />} />
             <Route path="/prescriptions/:id" element={<PrescriptionDetail />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/transactions/new/:type" element={<TransactionForm />} />
+            <Route path="/transactions/:id" element={<TransactionDetail />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>

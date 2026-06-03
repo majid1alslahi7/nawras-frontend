@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
 import { ArrowRight, Printer, Pill } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
-import api from '../../services/api';
+import api, { apiUrl } from '../../services/api';
 
 export default function PrescriptionDetail() {
   const { id } = useParams();
@@ -30,7 +29,7 @@ export default function PrescriptionDetail() {
           <Button variant="ghost" icon={ArrowRight} onClick={() => navigate('/prescriptions')}>العودة</Button>
           <h1 className="text-2xl font-bold text-[#132D42]">تفاصيل الوصفة</h1>
         </div>
-        <Button icon={Printer} onClick={() => window.open(`https://nawrasb.alssemam.com/api/prescriptions/${rx.id}/pdf`)}>طباعة</Button>
+        <Button icon={Printer} onClick={() => window.open(apiUrl(`/prescriptions/${rx.id}/pdf`))}>طباعة</Button>
       </div>
 
       <Card>

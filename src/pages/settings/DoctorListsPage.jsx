@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useGetQuery, useMutate } from '../../hooks/useApi';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Badge } from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { Plus, Edit, Trash, Search, Pill, FlaskConical } from 'lucide-react';
 
@@ -14,8 +13,8 @@ export default function DoctorListsPage() {
   const [form, setForm] = useState({});
   const [search, setSearch] = useState('');
 
-  const { data: medications, refetch: refetchMeds } = useGetQuery(['medications', search], `/medications?search=${search}&per_page=50`);
-  const { data: labTests, refetch: refetchTests } = useGetQuery(['lab-tests', search], `/lab-tests?search=${search}&per_page=50`);
+  const { data: medications } = useGetQuery(['medications', search], `/medications?search=${search}&per_page=50`);
+  const { data: labTests } = useGetQuery(['lab-tests', search], `/lab-tests?search=${search}&per_page=50`);
 
   const endpoint = tab === 'medications' ? '/medications' : '/lab-tests';
   const saveMutation = useMutate(editing ? 'put' : 'post', editing ? `${endpoint}/${editing.id}` : endpoint, {

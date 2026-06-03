@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
-import { Save, X, ArrowRight, Heart, Thermometer, Activity } from 'lucide-react';
+import { Save, X, ArrowRight } from 'lucide-react';
 
 export default function VisitForm() {
   const { id } = useParams();
@@ -25,14 +25,15 @@ export default function VisitForm() {
   useEffect(() => {
     if (visit?.data) {
       const v = visit.data;
-      setForm({
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm(prev => ({
         patient_id: v.patient?.id || '', doctor_id: v.doctor?.id || '', visit_date: v.visit_date?.slice(0, 16) || '',
         chief_complaint: v.chief_complaint || '', present_illness: v.present_illness || '',
         diagnosis_initial: v.diagnosis_initial || '', diagnosis_final: v.diagnosis_final || '',
         icd10_code: v.icd10_code || '', doctor_notes: v.doctor_notes || '', plan: v.plan || '',
         status: v.status || 'قيد الكشف', is_free: v.is_free || false,
-        vitals: { ...form.vitals, ...(v.vitals || {}) },
-      });
+        vitals: { ...prev.vitals, ...(v.vitals || {}) },
+      }));
     }
   }, [visit]);
 

@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { ArrowRight, Printer, Stethoscope, Activity, Pill, FlaskConical } from 'lucide-react';
 import { formatDateTime, statusStyles } from '../../lib/utils';
-import api from '../../services/api';
+import api, { apiUrl } from '../../services/api';
 
 export default function VisitDetail() {
   const { id } = useParams();
@@ -66,7 +66,7 @@ export default function VisitDetail() {
               <div className="flex justify-between mb-2"><span className="font-mono text-sm text-[#153751]">{rx.prescription_number}</span><span className="text-xs text-[#7E8991]">{formatDateTime(rx.prescription_date)}</span></div>
               <p className="text-sm font-medium">{rx.diagnosis}</p>
               {rx.items?.map((item) => <p key={item.order_number} className="text-xs text-[#7E8991] mr-4 mt-1">{item.order_number}. {item.medication_name} - {item.dosage} {item.frequency}</p>)}
-              <Button variant="ghost" size="sm" icon={Printer} onClick={() => window.open(`https://nawrasb.alssemam.com/api/prescriptions/${rx.id}/pdf`)} className="mt-2">طباعة</Button>
+              <Button variant="ghost" size="sm" icon={Printer} onClick={() => window.open(apiUrl(`/prescriptions/${rx.id}/pdf`))} className="mt-2">طباعة</Button>
             </div>
           ))}
         </CardContent></Card>

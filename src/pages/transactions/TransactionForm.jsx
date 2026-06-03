@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGetQuery, useMutate } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
-import { Save, X, ArrowRight, Banknote } from 'lucide-react';
+import { Save, X, ArrowRight } from 'lucide-react';
 
 export default function TransactionForm() {
   const navigate = useNavigate();
+  const { type } = useParams();
+  const defaultType = type === 'expense' ? 'مصروف' : 'إيراد';
   const [form, setForm] = useState({
-    category_id: '', type: 'إيراد', amount: '', discount: '0', tax: '0',
+    category_id: '', type: defaultType, amount: '', discount: '0', tax: '0',
     payment_method: 'نقدي', description: '', patient_id: '', visit_id: '', notes: '',
   });
 
@@ -24,7 +26,14 @@ export default function TransactionForm() {
 
   const totalAmount = (Number(form.amount) || 0) - (Number(form.discount) || 0) + (Number(form.tax) || 0);
 
-  const handleSubmit = (e) => { e.preventDefault(); saveTransaction.mutate({ ...form, total_amount: totalAmount }); };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveTransaction.mutate({
+      ...form,
+      receipt_type: form.type === 'إيراد' ? 'income_receipt' : 'expense_receipt',
+      total_amount: totalAmount,
+    });
+  };
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">

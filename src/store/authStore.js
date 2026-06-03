@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import api from '../services/api';
 
-export const useAuthStore = create((set, get) => ({
+export const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem('nawras-user') || 'null'),
   token: localStorage.getItem('nawras-token') || null,
   isAuthenticated: !!localStorage.getItem('nawras-token'),

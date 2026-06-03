@@ -1,7 +1,14 @@
 import axios from 'axios';
 
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://nawrasb.alssemam.com/api').replace(/\/+$/, '');
+
+export function apiUrl(path = '') {
+  const cleanPath = String(path).replace(/^\/+/, '');
+  return cleanPath ? `${API_BASE_URL}/${cleanPath}` : API_BASE_URL;
+}
+
 const api = axios.create({
-  baseURL: 'https://nawrasb.alssemam.com/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
 });
 

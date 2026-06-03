@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetQuery, useMutate } from '../../hooks/useApi';
+import { useMutate } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash } from 'lucide-react';
+import api from '../../services/api';
 
 export default function LabResultForm() {
   const { requestId } = useParams();
@@ -17,17 +18,33 @@ export default function LabResultForm() {
     notes: '',
   });
 
+  useEffect(() => {
+    if (!requestId) return;
+
+    api.get(`/lab-requests/${requestId}`)
+      .then(({ data: d }) => {
+        const data = d.data || d;
+        setForm(prev => ({
+          ...prev,
+          lab_request_id: requestId,
+          patient_id: data.patient_id,
+          visit_id: data.visit_id || '',
+          results_json: data.tests_list?.map(t => ({ test_name: t.test_name, result: '', unit: '', normal_range: '', is_abnormal: false })) || prev.results_json,
+        }));
+      }).catch(() => undefined);
+  }, [requestId]);
+
   const handleRequestSelect = (reqId) => {
     setForm({ ...form, lab_request_id: reqId });
     if (reqId) {
-      fetch(`https://nawrasb.alssemam.com/api/lab-requests/${reqId}`)
-        .then(r => r.json()).then(d => {
+      api.get(`/lab-requests/${reqId}`)
+        .then(({ data: d }) => {
           const data = d.data || d;
           setForm(prev => ({
-            ...prev, patient_id: data.patient_id, visit_id: data.visit_id,
+            ...prev, patient_id: data.patient_id, visit_id: data.visit_id || '',
             results_json: data.tests_list?.map(t => ({ test_name: t.test_name, result: '', unit: '', normal_range: '', is_abnormal: false })) || prev.results_json,
           }));
-        });
+        }).catch(() => undefined);
     }
   };
 
@@ -40,6 +57,20 @@ export default function LabResultForm() {
   const removeRow = (i) => setForm({ ...form, results_json: form.results_json.filter((_, idx) => idx !== i) });
   const updateRow = (i, field, value) => {
     const rows = [...form.results_json]; rows[i][field] = value; setForm({ ...form, results_json: rows });
+  };
+  const selectLabTest = (i, labTest) => {
+    if (!labTest) {
+      updateRow(i, 'test_name', '');
+      return;
+    }
+    const rows = [...form.results_json];
+    rows[i] = {
+      ...rows[i],
+      test_name: labTest.test_name,
+      unit: labTest.unit || rows[i].unit,
+      normal_range: labTest.normal_range || rows[i].normal_range,
+    };
+    setForm({ ...form, results_json: rows });
   };
 
   return (
@@ -62,7 +93,7 @@ export default function LabResultForm() {
           <CardContent className="space-y-4">
             {form.results_json.map((row, i) => (
               <div key={i} className="grid grid-cols-12 gap-2 items-center bg-[#F2EFEE] p-3 rounded-2xl">
-                <div className="col-span-4"><Input placeholder="الفحص" value={row.test_name} onChange={(e) => updateRow(i, 'test_name', e.target.value)} required /></div>
+                <div className="col-span-4"><SmartSelect endpoint="/lab-tests/dropdown" value={row.test_name} onChange={(value) => updateRow(i, 'test_name', value)} onSelect={(labTest) => selectLabTest(i, labTest)} placeholder="الفحص" displayField="test_name" valueField="test_name" secondaryField="category" allowCustomValue /></div>
                 <div className="col-span-2"><Input placeholder="النتيجة" value={row.result} onChange={(e) => updateRow(i, 'result', e.target.value)} required /></div>
                 <div className="col-span-2"><Input placeholder="الوحدة" value={row.unit} onChange={(e) => updateRow(i, 'unit', e.target.value)} /></div>
                 <div className="col-span-2"><Input placeholder="المجال الطبيعي" value={row.normal_range} onChange={(e) => updateRow(i, 'normal_range', e.target.value)} /></div>

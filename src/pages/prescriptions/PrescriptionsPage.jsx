@@ -5,9 +5,9 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
-import { Plus, Search, Pill, Printer, ChevronLeft, Download } from 'lucide-react';
+import { Plus, Search, Pill, Printer } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
-import api from '../../services/api';
+import { apiUrl } from '../../services/api';
 
 export default function PrescriptionsPage() {
   const [search, setSearch] = useState('');
@@ -15,7 +15,7 @@ export default function PrescriptionsPage() {
   const { data, isLoading } = useGetQuery(['prescriptions', { search, page }], `/prescriptions?search=${search}&page=${page}&per_page=20`);
 
   const handlePrint = async (id) => {
-    window.open(`https://nawrasb.alssemam.com/api/prescriptions/${id}/pdf`, '_blank');
+    window.open(apiUrl(`/prescriptions/${id}/pdf`), '_blank');
   };
 
   return (

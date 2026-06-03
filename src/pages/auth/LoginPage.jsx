@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { toast } from 'sonner';
 import { LogIn, Phone, Lock } from 'lucide-react';
+import NawrasLogo from '../../components/brand/NawrasLogo';
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('');
@@ -35,10 +35,8 @@ export default function LoginPage() {
   return (
     <div className="bg-white border border-[#E9E5E3] rounded-3xl p-8 shadow-[0_20px_60px_rgba(19,45,66,0.08)]">
       <div className="text-center mb-8">
-        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-[#153751] to-[#1E5A78] rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-[#153751]/20">
-          <span className="text-white font-bold text-4xl" style={{ fontFamily: 'serif' }}>ن</span>
-        </div>
-        <h1 className="text-2xl font-bold text-[#132D42]">عيادة نورس</h1>
+        <NawrasLogo size="lg" className="mx-auto mb-5" />
+        <h1 className="text-2xl font-bold text-[#132D42]">عيادة النورس</h1>
         <p className="text-[#7E8991] mt-1">رعايتكم رسالتنا</p>
       </div>
 

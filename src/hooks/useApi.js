@@ -3,17 +3,33 @@ import api from '../services/api';
 import { toast } from 'sonner';
 
 export function useGetQuery(key, url, options = {}) {
+  const { enabled = true, ...queryOptions } = options;
+  const queryKey = Array.isArray(key) ? key : [key ?? 'disabled-query'];
+
   return useQuery({
-    queryKey: Array.isArray(key) ? key : [key],
+    queryKey,
     queryFn: async () => { const { data } = await api.get(url); return data; },
-    ...options,
+    enabled: Boolean(key && url && enabled),
+    ...queryOptions,
   });
 }
 
 export function useMutate(method, url, options = {}) {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (variables) => { const { data } = await api[method](url, variables); return data; },
+  const mutation = useMutation({
+    mutationFn: async (variables) => {
+      const targetUrl = variables?.url || url;
+      const payload = variables?.url ? variables.data : variables;
+      if (!targetUrl) throw new Error('لم يتم تحديد مسار الطلب');
+
+      if (method === 'delete') {
+        const { data } = await api.delete(targetUrl, { data: payload });
+        return data;
+      }
+
+      const { data } = await api[method](targetUrl, payload);
+      return data;
+    },
     onSuccess: (data) => {
       if (options.successMessage) toast.success(options.successMessage);
       if (options.invalidate) {
@@ -24,4 +40,6 @@ export function useMutate(method, url, options = {}) {
     },
     onError: (error) => { toast.error(error.response?.data?.message || 'حدث خطأ'); if (options.onError) options.onError(error); },
   });
+
+  return { ...mutation, isLoading: mutation.isPending };
 }

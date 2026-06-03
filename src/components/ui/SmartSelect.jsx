@@ -9,12 +9,13 @@ export default function SmartSelect({
   onChange, 
   endpoint, 
   placeholder = 'اختر...', 
-  searchPlaceholder = 'بحث...',
   displayField = 'full_name',
   valueField = 'id',
   secondaryField = 'phone',
   addLabel = 'إضافة جديد',
   onAdd,
+  onSelect,
+  allowCustomValue = false,
   className 
 }) {
   const [search, setSearch] = useState('');
@@ -23,6 +24,7 @@ export default function SmartSelect({
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const wrapperRef = useRef(null);
+  const resourceEndpoint = endpoint?.split('?')[0];
 
   // جلب الخيارات
   useEffect(() => {
@@ -30,9 +32,10 @@ export default function SmartSelect({
       if (!endpoint) return;
       setLoading(true);
       try {
-        const { data } = await api.get(`${endpoint}?search=${search}&per_page=20`);
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const { data } = await api.get(`${endpoint}${separator}search=${encodeURIComponent(search)}&per_page=20`);
         setOptions(data.data || data);
-      } catch (e) {
+      } catch {
         setOptions([]);
       }
       setLoading(false);
@@ -44,12 +47,22 @@ export default function SmartSelect({
 
   // جلب القيمة المحددة عند تحميل المكون
   useEffect(() => {
-    if (value && endpoint && !selected) {
-      api.get(`${endpoint}/${value}`).then(({ data }) => {
+    if (!value) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelected(null);
+      return;
+    }
+
+    if (selected && String(selected[valueField]) === String(value)) {
+      return;
+    }
+
+    if (valueField === 'id' && resourceEndpoint) {
+      api.get(`${resourceEndpoint}/${value}`).then(({ data }) => {
         setSelected(data.data || data);
       }).catch(() => {});
     }
-  }, [value]);
+  }, [value, valueField, resourceEndpoint, selected]);
 
   // إغلاق عند النقر خارج المكون
   useEffect(() => {
@@ -65,6 +78,7 @@ export default function SmartSelect({
   const handleSelect = (item) => {
     setSelected(item);
     onChange(item[valueField]);
+    onSelect?.(item);
     setIsOpen(false);
     setSearch('');
   };
@@ -72,6 +86,7 @@ export default function SmartSelect({
   const handleClear = () => {
     setSelected(null);
     onChange(null);
+    onSelect?.(null);
     setSearch('');
   };
 
@@ -94,8 +109,13 @@ export default function SmartSelect({
         <div className="relative">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A09E9B]" />
           <Input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setIsOpen(true); }}
+            value={allowCustomValue ? (search || value || '') : search}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setSearch(nextValue);
+              if (allowCustomValue) onChange(nextValue);
+              setIsOpen(true);
+            }}
             onFocus={() => setIsOpen(true)}
             placeholder={placeholder}
             className="pr-10 bg-white"

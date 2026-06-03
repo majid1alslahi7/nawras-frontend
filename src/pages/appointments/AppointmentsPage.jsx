@@ -1,26 +1,30 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useGetQuery, useMutate } from '../../hooks/useApi';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
 import { Badge } from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { Plus, Search, Phone, X, CreditCard, CheckCircle, Users } from 'lucide-react';
+import SmartSelect from '../../components/ui/SmartSelect';
+import { Plus, Search, Phone, X, CreditCard, Users, Eye } from 'lucide-react';
 import { formatDate, formatTime } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
 
 export default function AppointmentsPage() {
   const { user } = useAuthStore();
   const isNurse = user?.role === 'nurse';
-  const [search, setSearch] = useState('');
+  const search = '';
   const [filter, setFilter] = useState(isNurse ? 'unpaid' : 'doctor');
   const [showModal, setShowModal] = useState(false);
   const [showPaidPatients, setShowPaidPatients] = useState(false);
   const [searchPaid, setSearchPaid] = useState('');
-  const [form, setForm] = useState({ patient_id: '', appointment_date: '', appointment_time: '', visit_reason: '', visit_type: 'كشف جديد' });
+  const [form, setForm] = useState({ patient_id: '', appointment_date: '', appointment_time: '', visit_reason: '', visit_type: 'كشف جديد', is_free: false, free_until: '' });
 
   const endpoint = filter === 'unpaid' ? '/appointments/unpaid' : filter === 'doctor' ? '/appointments/doctor-view' : '/appointments';
   const { data, isLoading } = useGetQuery(['appointments', { search, filter }], `${endpoint}?search=${search}&per_page=50`);
+  const { data: categories } = useGetQuery('categories', '/categories');
 
   // قائمة المرضى المدفوعين
   const { data: paidPatients } = useGetQuery(
@@ -42,12 +46,17 @@ export default function AppointmentsPage() {
 
   const handlePay = (appt) => {
     const amount = prompt('المبلغ (﷼):', '5000');
+    const category = categories?.find((item) => item.type === 'إيراد' && item.name_ar === 'كشف طبي') || categories?.find((item) => item.type === 'إيراد');
+    if (!category) {
+      alert('لا يوجد تصنيف إيراد فعال لتسجيل السند');
+      return;
+    }
     if (amount) {
       payAppointment.mutate({
-        category_id: 1,
+        category_id: category.id,
+        appointment_id: appt.id,
         patient_id: appt.patient_id || appt.patient?.id,
         amount: Number(amount),
-        total_amount: Number(amount),
         type: 'إيراد',
         payment_method: 'نقدي',
         description: 'سند معاينة - ' + (appt.patient?.full_name || appt.full_name),
@@ -100,6 +109,7 @@ export default function AppointmentsPage() {
                   {isNurse && !appt.is_paid && (
                     <Button variant="success" size="sm" icon={CreditCard} onClick={() => handlePay(appt)}>دفع</Button>
                   )}
+                  <Link to={`/appointments/${appt.id}`}><Button variant="ghost" size="sm" icon={Eye} /></Link>
                 </div>
               </CardContent>
             </Card>
@@ -143,13 +153,30 @@ export default function AppointmentsPage() {
           <form onSubmit={(e) => { e.preventDefault(); createAppointment.mutate(form); }} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">المريض *</label>
-              <Input value={form.patient_id} onChange={(e) => setForm({ ...form, patient_id: e.target.value })} placeholder="معرف المريض" />
+              <SmartSelect endpoint="/patients/dropdown" value={form.patient_id} onChange={(value) => setForm({ ...form, patient_id: value })} placeholder="ابحث عن المريض..." displayField="full_name" valueField="id" secondaryField="phone" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div><label className="block text-sm font-medium mb-1">التاريخ *</label><Input type="date" value={form.appointment_date} onChange={(e) => setForm({ ...form, appointment_date: e.target.value })} required /></div>
               <div><label className="block text-sm font-medium mb-1">الوقت *</label><Input type="time" value={form.appointment_time} onChange={(e) => setForm({ ...form, appointment_time: e.target.value })} required /></div>
             </div>
             <div><label className="block text-sm font-medium mb-1">سبب الزيارة *</label><Input value={form.visit_reason} onChange={(e) => setForm({ ...form, visit_reason: e.target.value })} required /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">نوع الزيارة</label>
+                <Select value={form.visit_type} onChange={(e) => setForm({ ...form, visit_type: e.target.value })}>
+                  <option value="كشف جديد">كشف جديد</option>
+                  <option value="متابعة">متابعة</option>
+                  <option value="عرض نتائج">عرض نتائج</option>
+                  <option value="استشارة">استشارة</option>
+                  <option value="طارئ">طارئ</option>
+                  <option value="إجراء">إجراء</option>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">مجاني حتى</label>
+                <Input type="date" value={form.free_until} onChange={(e) => setForm({ ...form, free_until: e.target.value, is_free: Boolean(e.target.value) })} />
+              </div>
+            </div>
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={() => setShowModal(false)} icon={X}>إلغاء</Button>
               <Button type="submit" icon={Plus}>حجز</Button>

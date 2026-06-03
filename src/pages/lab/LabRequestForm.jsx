@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetQuery, useMutate } from '../../hooks/useApi';
+import { useMutate } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -8,6 +8,7 @@ import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash, Printer } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { apiUrl } from '../../services/api';
 
 const TEST_TEMPLATES = {
   'دم': ['صورة دم كاملة (CBC)', 'سرعة ترسيب (ESR)', 'سكر صائم (FBS)', 'سكر تراكمي (HbA1c)', 'دهون ثلاثية', 'كوليسترول', 'فيتامين د', 'فيتامين B12'],
@@ -32,7 +33,7 @@ export default function LabRequestForm() {
     successMessage: 'تم إرسال طلب الفحوصات بنجاح',
     onSuccess: (data) => {
       if (confirm('هل تريد طباعة طلب الفحوصات؟')) {
-        window.open(`https://nawrasb.alssemam.com/api/lab-requests/${data.data?.id || data.id}/pdf`, '_blank');
+        window.open(apiUrl(`/lab-requests/${data.data?.id || data.id}/pdf`), '_blank');
       }
       navigate('/lab');
     },
@@ -47,10 +48,19 @@ export default function LabRequestForm() {
     tests[i][field] = value;
     setForm({ ...form, tests_list_json: tests });
   };
+  const selectTest = (i, labTest) => {
+    if (!labTest) {
+      updateTest(i, 'test_name', '');
+      return;
+    }
+    const tests = [...form.tests_list_json];
+    tests[i] = { test_name: labTest.test_name, category: labTest.category || '' };
+    setForm({ ...form, tests_list_json: tests });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const filteredTests = form.tests_list_json.filter(t => t.test_name.trim());
+    const filteredTests = form.tests_list_json.filter(t => (t.test_name || '').trim());
     if (filteredTests.length === 0) return alert('أضف فحصاً واحداً على الأقل');
     createRequest.mutate({ ...form, tests_list_json: filteredTests });
   };
@@ -72,7 +82,7 @@ export default function LabRequestForm() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">الطبيب *</label>
-              <Input value={user?.full_name} disabled className="bg-[#F2EFEE]" />
+              <SmartSelect endpoint="/doctors/dropdown" value={form.doctor_id} onChange={(v) => setForm({ ...form, doctor_id: v })} placeholder="اختر الطبيب..." displayField="full_name" valueField="id" />
             </div>
           </CardContent>
         </Card>
@@ -109,7 +119,7 @@ export default function LabRequestForm() {
               <div key={i} className="flex gap-3 items-start bg-[#F2EFEE] p-3 rounded-2xl">
                 <span className="text-xs text-[#7E8991] pt-3 w-6">{i + 1}.</span>
                 <div className="flex-1">
-                  <Input placeholder="اسم الفحص (مثال: صورة دم كاملة)" value={test.test_name} onChange={(e) => updateTest(i, 'test_name', e.target.value)} />
+                  <SmartSelect endpoint="/lab-tests/dropdown" value={test.test_name} onChange={(value) => updateTest(i, 'test_name', value)} onSelect={(labTest) => selectTest(i, labTest)} placeholder="اختر أو ابحث عن الفحص..." displayField="test_name" valueField="test_name" secondaryField="category" allowCustomValue />
                 </div>
                 <div className="w-28">
                   <Select value={test.category} onChange={(e) => updateTest(i, 'category', e.target.value)}>

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGetQuery, useMutate } from '../../hooks/useApi';
+import { useMutate } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
-import { Save, X, ArrowRight, Plus, Trash, Pill } from 'lucide-react';
+import { Save, X, ArrowRight, Plus, Trash } from 'lucide-react';
 
 export default function PrescriptionForm() {
   const navigate = useNavigate();
@@ -27,6 +27,25 @@ export default function PrescriptionForm() {
     setForm(prev => {
       const items = [...prev.items];
       items[index][field] = value;
+      return { ...prev, items };
+    });
+  };
+  const selectMedication = (index, medication) => {
+    if (!medication) {
+      updateItem(index, 'medication_id', '');
+      return;
+    }
+    setForm(prev => {
+      const items = [...prev.items];
+      items[index] = {
+        ...items[index],
+        medication_id: medication.trade_name,
+        medication_name: medication.trade_name,
+        concentration: medication.concentration || items[index].concentration,
+        dosage: medication.default_dosage || items[index].dosage,
+        frequency: medication.default_frequency || items[index].frequency,
+        duration: medication.default_duration || items[index].duration,
+      };
       return { ...prev, items };
     });
   };
@@ -83,7 +102,7 @@ export default function PrescriptionForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium mb-1">اسم الدواء *</label>
-                    <SmartSelect endpoint="/medications/dropdown" value={item.medication_id} onChange={(val) => updateItem(index, 'medication_id', val)} placeholder="اختر من القائمة..." displayField="trade_name" valueField="trade_name" secondaryField="concentration" />
+                    <SmartSelect endpoint="/medications/dropdown" value={item.medication_id} onChange={(val) => updateItem(index, 'medication_id', val)} onSelect={(medication) => selectMedication(index, medication)} placeholder="اختر من القائمة..." displayField="trade_name" valueField="trade_name" secondaryField="concentration" />
                   </div>
                   <div><label className="block text-xs font-medium mb-1">أو اكتب يدوي</label><Input value={item.medication_name} onChange={e => updateItem(index, 'medication_name', e.target.value)} placeholder="اسم الدواء..." /></div>
                   <div><label className="block text-xs font-medium mb-1">التركيز</label><Input value={item.concentration} onChange={e => updateItem(index, 'concentration', e.target.value)} placeholder="500mg" /></div>

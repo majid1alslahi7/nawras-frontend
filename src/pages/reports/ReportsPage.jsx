@@ -3,7 +3,7 @@ import { useGetQuery } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
-import { BarChart3, TrendingUp, Users, Stethoscope, Download, Calendar, Filter } from 'lucide-react';
+import { TrendingUp, Users, Stethoscope, Download, Filter } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 
 export default function ReportsPage() {

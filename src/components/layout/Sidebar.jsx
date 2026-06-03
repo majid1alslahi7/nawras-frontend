@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { LayoutDashboard, Users, Calendar, Stethoscope, FlaskConical, Pill, Banknote, BarChart3, Settings, LogOut, X } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import NawrasLogo from '../brand/NawrasLogo';
 
 const menuItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم', roles: ['doctor', 'nurse', 'admin'] },
@@ -44,11 +45,9 @@ export default function Sidebar({ open, onClose }) {
         {/* Logo */}
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-white/15 backdrop-blur rounded-2xl flex items-center justify-center shadow-inner">
-              <span className="text-white font-bold text-2xl" style={{ fontFamily: 'serif' }}>ن</span>
-            </div>
+            <NawrasLogo size="sm" className="ring-white/35 shadow-[0_10px_24px_rgba(0,0,0,0.22)]" />
             <div>
-              <h1 className="font-bold text-white text-base">عيادة نورس</h1>
+              <h1 className="font-bold text-white text-base">عيادة النورس</h1>
               <p className="text-xs text-white/50">رعايتكم رسالتنا</p>
             </div>
           </div>

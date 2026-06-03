@@ -6,7 +6,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Badge } from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { Settings, Users, UserPlus, Shield, Save, X, Edit, Trash, Pill, FlaskConical } from 'lucide-react';
+import { Settings, Users, UserPlus, Shield, Save, Edit, Trash, Pill } from 'lucide-react';
 import DoctorListsPage from './DoctorListsPage';
 
 export default function SettingsPage() {
@@ -25,6 +25,10 @@ export default function SettingsPage() {
   });
 
   const deleteUser = useMutate('delete', '', { invalidate: 'users-list', successMessage: 'تم حذف المستخدم' });
+  const saveSettings = useMutate('put', '/settings', {
+    invalidate: 'settings',
+    successMessage: 'تم حفظ إعدادات العيادة',
+  });
 
   const resetForm = () => { setForm({ full_name: '', phone: '', email: '', password: '', role: 'nurse' }); setEditingUser(null); };
   const handleEdit = (user) => { setEditingUser(user); setForm({ full_name: user.full_name, phone: user.phone, email: user.email || '', password: '', role: user.role }); setShowUserModal(true); };
@@ -32,6 +36,19 @@ export default function SettingsPage() {
 
   const roleLabels = { doctor: 'طبيب', nurse: 'ممرض', admin: 'مدير' };
   const roleColors = { doctor: 'info', nurse: 'success', admin: 'warning' };
+  const settingValue = (key) => settings?.find((item) => item.setting_key === key)?.setting_value || '';
+  const handleSettingsSubmit = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const keys = ['clinic_name', 'clinic_phone', 'clinic_address', 'consultation_fee', 'followup_fee', 'working_hours_start', 'working_hours_end'];
+    saveSettings.mutate({
+      settings: keys.map((key) => ({
+        setting_key: key,
+        setting_value: formData.get(key),
+        setting_type: ['consultation_fee', 'followup_fee'].includes(key) ? 'number' : 'text',
+      })),
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -68,10 +85,23 @@ export default function SettingsPage() {
       {tab === 'lists' && <DoctorListsPage />}
 
       {tab === 'clinic' && (
-        <Card><CardHeader><CardTitle>معلومات العيادة</CardTitle></CardHeader><CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label className="block text-sm font-medium mb-1">اسم العيادة</label><Input defaultValue={settings?.find(s => s.setting_key === 'clinic_name')?.setting_value} /></div><div><label className="block text-sm font-medium mb-1">الهاتف</label><Input defaultValue={settings?.find(s => s.setting_key === 'clinic_phone')?.setting_value} /></div><div className="md:col-span-2"><label className="block text-sm font-medium mb-1">العنوان</label><Input defaultValue={settings?.find(s => s.setting_key === 'clinic_address')?.setting_value} /></div><div><label className="block text-sm font-medium mb-1">رسوم الكشف</label><Input type="number" defaultValue={settings?.find(s => s.setting_key === 'consultation_fee')?.setting_value} /></div><div><label className="block text-sm font-medium mb-1">رسوم المتابعة</label><Input type="number" defaultValue={settings?.find(s => s.setting_key === 'followup_fee')?.setting_value} /></div><div><label className="block text-sm font-medium mb-1">بداية الدوام</label><Input type="time" defaultValue={settings?.find(s => s.setting_key === 'working_hours_start')?.setting_value} /></div><div><label className="block text-sm font-medium mb-1">نهاية الدوام</label><Input type="time" defaultValue={settings?.find(s => s.setting_key === 'working_hours_end')?.setting_value} /></div></div>
-          <Button icon={Save}>حفظ الإعدادات</Button>
-        </CardContent></Card>
+        <Card>
+          <CardHeader><CardTitle>معلومات العيادة</CardTitle></CardHeader>
+          <CardContent>
+            <form key={settings?.length || 0} onSubmit={handleSettingsSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium mb-1">اسم العيادة</label><Input name="clinic_name" defaultValue={settingValue('clinic_name')} /></div>
+                <div><label className="block text-sm font-medium mb-1">الهاتف</label><Input name="clinic_phone" defaultValue={settingValue('clinic_phone')} /></div>
+                <div className="md:col-span-2"><label className="block text-sm font-medium mb-1">العنوان</label><Input name="clinic_address" defaultValue={settingValue('clinic_address')} /></div>
+                <div><label className="block text-sm font-medium mb-1">رسوم الكشف</label><Input name="consultation_fee" type="number" defaultValue={settingValue('consultation_fee')} /></div>
+                <div><label className="block text-sm font-medium mb-1">رسوم المتابعة</label><Input name="followup_fee" type="number" defaultValue={settingValue('followup_fee')} /></div>
+                <div><label className="block text-sm font-medium mb-1">بداية الدوام</label><Input name="working_hours_start" type="time" defaultValue={settingValue('working_hours_start')} /></div>
+                <div><label className="block text-sm font-medium mb-1">نهاية الدوام</label><Input name="working_hours_end" type="time" defaultValue={settingValue('working_hours_end')} /></div>
+              </div>
+              <Button type="submit" icon={Save} loading={saveSettings.isLoading}>حفظ الإعدادات</Button>
+            </form>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

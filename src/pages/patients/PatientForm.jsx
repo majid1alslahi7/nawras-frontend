@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
-import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight } from 'lucide-react';
 
 export default function PatientForm() {
@@ -25,6 +24,7 @@ export default function PatientForm() {
   useEffect(() => {
     if (patient?.data) {
       const p = patient.data;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         full_name: p.full_name || '', phone: p.phone || '', phone2: p.phone2 || '',
         address: p.address || '', birth_date: p.birth_date || '', gender: p.gender || '',

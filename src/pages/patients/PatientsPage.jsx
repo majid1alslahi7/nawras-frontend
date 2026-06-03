@@ -5,7 +5,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
-import { Plus, Search, Phone, MapPin, ChevronLeft, Users, Edit, Eye } from 'lucide-react';
+import { Plus, Search, Phone, MapPin, Users, Edit, Eye } from 'lucide-react';
 
 export default function PatientsPage() {
   const [search, setSearch] = useState('');
