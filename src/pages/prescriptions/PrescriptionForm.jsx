@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function PrescriptionForm() {
   const navigate = useNavigate();
@@ -52,18 +53,40 @@ export default function PrescriptionForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!form.patient_id) {
+      toast.error('اختر المريض قبل حفظ الوصفة');
+      return;
+    }
+    if (!form.doctor_id) {
+      toast.error('اختر الطبيب قبل حفظ الوصفة');
+      return;
+    }
+    if (!form.diagnosis.trim()) {
+      toast.error('اكتب التشخيص قبل حفظ الوصفة');
+      return;
+    }
+
+    const items = form.items.map(item => ({
+      medication_name: (item.medication_name || item.medication_id || '').trim(),
+      concentration: (item.concentration || '').trim(),
+      dosage: (item.dosage || '').trim(),
+      frequency: (item.frequency || '').trim(),
+      duration: (item.duration || '').trim(),
+      route: item.route,
+      timing: item.timing,
+      instructions: (item.instructions || '').trim(),
+    }));
+
+    if (items.some(item => !item.medication_name || !item.dosage || !item.frequency)) {
+      toast.error('كل دواء يجب أن يحتوي الاسم والجرعة والتكرار');
+      return;
+    }
+
     const payload = {
       ...form,
-      items: form.items.map(item => ({
-        medication_name: item.medication_name || item.medication_id,
-        concentration: item.concentration,
-        dosage: item.dosage,
-        frequency: item.frequency,
-        duration: item.duration,
-        route: item.route,
-        timing: item.timing,
-        instructions: item.instructions,
-      })),
+      diagnosis: form.diagnosis.trim(),
+      notes: form.notes.trim(),
+      items,
     };
     savePrescription.mutate(payload);
   };

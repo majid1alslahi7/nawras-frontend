@@ -7,7 +7,8 @@ import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { Plus, Search, Pill, Printer } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
-import { apiUrl } from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function PrescriptionsPage() {
   const [search, setSearch] = useState('');
@@ -15,7 +16,11 @@ export default function PrescriptionsPage() {
   const { data, isLoading } = useGetQuery(['prescriptions', { search, page }], `/prescriptions?search=${search}&page=${page}&per_page=20`);
 
   const handlePrint = async (id) => {
-    window.open(apiUrl(`/prescriptions/${id}/pdf`), '_blank');
+    try {
+      await openApiFile(`/prescriptions/${id}/pdf`, `prescription-${id}.pdf`);
+    } catch {
+      toast.error('تعذرت طباعة الوصفة');
+    }
   };
 
   return (

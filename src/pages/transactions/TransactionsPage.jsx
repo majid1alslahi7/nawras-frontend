@@ -9,7 +9,8 @@ import Modal from '../../components/ui/Modal';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { TrendingUp, TrendingDown, Banknote, Printer, Eye } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import { apiUrl } from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function TransactionsPage() {
   const filter = 'today';
@@ -46,7 +47,10 @@ export default function TransactionsPage() {
     });
   };
 
-  const handlePrint = (id) => window.open(apiUrl(`/transactions/${id}/receipt`), '_blank');
+  const handlePrint = (id) => {
+    openApiFile(`/transactions/${id}/receipt`, `receipt-${id}.pdf`)
+      .catch(() => toast.error('تعذرت طباعة السند'));
+  };
 
   return (
     <div className="space-y-6">

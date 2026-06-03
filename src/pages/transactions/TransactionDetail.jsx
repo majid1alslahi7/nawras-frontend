@@ -5,7 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { formatCurrency, formatDateTime } from '../../lib/utils';
-import { apiUrl } from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function TransactionDetail() {
   const { id } = useParams();
@@ -26,7 +27,7 @@ export default function TransactionDetail() {
             <p className="text-sm text-[#7E8991]">{transaction.receipt_number}</p>
           </div>
         </div>
-        <Button icon={Printer} onClick={() => window.open(apiUrl(`/transactions/${transaction.id}/receipt`), '_blank')}>طباعة السند</Button>
+        <Button icon={Printer} onClick={() => openApiFile(`/transactions/${transaction.id}/receipt`, `receipt-${transaction.id}.pdf`).catch(() => toast.error('تعذرت طباعة السند'))}>طباعة السند</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

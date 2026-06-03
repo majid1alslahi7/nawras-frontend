@@ -11,6 +11,7 @@ import SmartSelect from '../../components/ui/SmartSelect';
 import { Plus, Search, Phone, X, CreditCard, Users, Eye } from 'lucide-react';
 import { formatDate, formatTime } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
+import { toast } from 'sonner';
 
 export default function AppointmentsPage() {
   const { user } = useAuthStore();
@@ -68,6 +69,15 @@ export default function AppointmentsPage() {
   const selectPaidPatient = (patient) => {
     setForm({ ...form, patient_id: patient.id });
     setShowPaidPatients(false);
+  };
+
+  const handleCreateAppointment = (e) => {
+    e.preventDefault();
+    if (!form.patient_id) {
+      toast.error('اختر المريض قبل حجز الموعد');
+      return;
+    }
+    createAppointment.mutate(form);
   };
 
   return (
@@ -150,7 +160,7 @@ export default function AppointmentsPage() {
             </div>
           )}
 
-          <form onSubmit={(e) => { e.preventDefault(); createAppointment.mutate(form); }} className="space-y-4">
+          <form onSubmit={handleCreateAppointment} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">المريض *</label>
               <SmartSelect endpoint="/patients/dropdown" value={form.patient_id} onChange={(value) => setForm({ ...form, patient_id: value })} placeholder="ابحث عن المريض..." displayField="full_name" valueField="id" secondaryField="phone" />

@@ -5,7 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { formatDateTime, statusStyles } from '../../lib/utils';
-import { apiUrl } from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function LabRequestDetail() {
   const { id } = useParams();
@@ -28,7 +29,7 @@ export default function LabRequestDetail() {
         </div>
         <div className="flex gap-2">
           <Link to={`/lab/result/new/${request.id}`}><Button variant="outline" icon={Upload}>إدخال نتيجة</Button></Link>
-          <Button icon={Printer} onClick={() => window.open(apiUrl(`/lab-requests/${request.id}/pdf`), '_blank')}>طباعة الطلب</Button>
+          <Button icon={Printer} onClick={() => openApiFile(`/lab-requests/${request.id}/pdf`, `lab-request-${request.id}.pdf`).catch(() => toast.error('تعذرت طباعة طلب الفحوصات'))}>طباعة الطلب</Button>
         </div>
       </div>
 

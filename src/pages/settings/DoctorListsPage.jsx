@@ -67,6 +67,11 @@ export default function DoctorListsPage() {
                 <p className="text-xs text-[#7E8991]">
                   {tab === 'medications' ? `${item.concentration || ''} ${item.form || ''}` : item.category}
                 </p>
+                {tab === 'medications' && (item.default_dosage || item.default_frequency || item.default_duration) && (
+                  <p className="text-xs text-[#7E8991] mt-1">
+                    {[item.default_dosage, item.default_frequency, item.default_duration].filter(Boolean).join(' - ')}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" icon={Edit} onClick={() => handleEdit(item)} />
@@ -86,6 +91,11 @@ export default function DoctorListsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-medium mb-1">التركيز</label><Input value={form.concentration || ''} onChange={e => setForm({...form, concentration: e.target.value})} placeholder="500mg" /></div>
                 <div><label className="block text-sm font-medium mb-1">الشكل</label><Input value={form.form || ''} onChange={e => setForm({...form, form: e.target.value})} placeholder="اقراص" /></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label className="block text-sm font-medium mb-1">جرعة افتراضية</label><Input value={form.default_dosage || ''} onChange={e => setForm({...form, default_dosage: e.target.value})} placeholder="قرص واحد" /></div>
+                <div><label className="block text-sm font-medium mb-1">تكرار افتراضي</label><Input value={form.default_frequency || ''} onChange={e => setForm({...form, default_frequency: e.target.value})} placeholder="كل 8 ساعات" /></div>
+                <div><label className="block text-sm font-medium mb-1">مدة افتراضية</label><Input value={form.default_duration || ''} onChange={e => setForm({...form, default_duration: e.target.value})} placeholder="5 أيام" /></div>
               </div>
             </>
           ) : (

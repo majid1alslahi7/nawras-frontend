@@ -7,7 +7,8 @@ import { Badge } from '../../components/ui/Badge';
 import { Plus, FlaskConical, AlertTriangle, Upload, Printer, Eye } from 'lucide-react';
 import { formatDate, statusStyles } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
-import { apiUrl } from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function LabPage() {
   const { user } = useAuthStore();
@@ -20,7 +21,10 @@ export default function LabPage() {
   const { data: unreviewed } = useGetQuery('lab-unreviewed', '/lab-results/unreviewed');
   const unreviewedItems = unreviewed?.data || unreviewed || [];
 
-  const handlePrintRequest = (id) => window.open(apiUrl(`/lab-requests/${id}/pdf`), '_blank');
+  const handlePrintRequest = (id) => {
+    openApiFile(`/lab-requests/${id}/pdf`, `lab-request-${id}.pdf`)
+      .catch(() => toast.error('تعذرت طباعة طلب الفحوصات'));
+  };
 
   return (
     <div className="space-y-6">

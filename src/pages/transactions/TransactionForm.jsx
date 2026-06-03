@@ -55,7 +55,7 @@ export default function TransactionForm() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">التصنيف *</label>
-                <Select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})}>
+                <Select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})} required>
                   <option value="">اختر...</option>
                   {categories?.filter(c => c.type === form.type).map(c => (
                     <option key={c.id} value={c.id}>{c.name_ar}</option>

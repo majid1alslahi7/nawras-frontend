@@ -5,7 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { formatDate, formatTime, statusStyles } from '../../lib/utils';
-import { apiUrl } from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function AppointmentDetail() {
   const { id } = useParams();
@@ -27,7 +28,7 @@ export default function AppointmentDetail() {
           </div>
         </div>
         {appointment.paid_transaction_id && (
-          <Button icon={Printer} onClick={() => window.open(apiUrl(`/transactions/${appointment.paid_transaction_id}/receipt`), '_blank')}>طباعة السند</Button>
+          <Button icon={Printer} onClick={() => openApiFile(`/transactions/${appointment.paid_transaction_id}/receipt`, `receipt-${appointment.paid_transaction_id}.pdf`).catch(() => toast.error('تعذرت طباعة السند'))}>طباعة السند</Button>
         )}
       </div>
 

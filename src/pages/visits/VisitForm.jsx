@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function VisitForm() {
   const { id } = useParams();
@@ -45,7 +46,24 @@ export default function VisitForm() {
   const updateField = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
   const updateVital = (field, value) => setForm(prev => ({ ...prev, vitals: { ...prev.vitals, [field]: value } }));
 
-  const handleSubmit = (e) => { e.preventDefault(); saveVisit.mutate(form); };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!form.patient_id) {
+      toast.error('اختر المريض قبل حفظ الكشف');
+      return;
+    }
+    if (!form.doctor_id) {
+      toast.error('اختر الطبيب قبل حفظ الكشف');
+      return;
+    }
+    if (!form.chief_complaint.trim()) {
+      toast.error('اكتب الشكوى الرئيسية قبل حفظ الكشف');
+      return;
+    }
+
+    saveVisit.mutate({ ...form, chief_complaint: form.chief_complaint.trim() });
+  };
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">

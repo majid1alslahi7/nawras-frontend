@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutate } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
@@ -8,7 +8,8 @@ import { Select } from '../../components/ui/Select';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash, Printer } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { apiUrl } from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 const TEST_TEMPLATES = {
   'دم': ['صورة دم كاملة (CBC)', 'سرعة ترسيب (ESR)', 'سكر صائم (FBS)', 'سكر تراكمي (HbA1c)', 'دهون ثلاثية', 'كوليسترول', 'فيتامين د', 'فيتامين B12'],
@@ -28,14 +29,20 @@ export default function LabRequestForm() {
     clinical_diagnosis: '', urgency: 'عادي', notes: '',
   });
   const [showTemplates, setShowTemplates] = useState(false);
+  const printAfterSaveRef = useRef(false);
 
   const createRequest = useMutate('post', '/lab-requests', {
     successMessage: 'تم إرسال طلب الفحوصات بنجاح',
     onSuccess: (data) => {
-      if (confirm('هل تريد طباعة طلب الفحوصات؟')) {
-        window.open(apiUrl(`/lab-requests/${data.data?.id || data.id}/pdf`), '_blank');
+      if (printAfterSaveRef.current || confirm('هل تريد طباعة طلب الفحوصات؟')) {
+        openApiFile(`/lab-requests/${data.data?.id || data.id}/pdf`, `lab-request-${data.data?.id || data.id}.pdf`)
+          .catch(() => toast.error('تعذرت طباعة طلب الفحوصات'));
       }
+      printAfterSaveRef.current = false;
       navigate('/lab');
+    },
+    onError: () => {
+      printAfterSaveRef.current = false;
     },
   });
 
@@ -58,10 +65,25 @@ export default function LabRequestForm() {
     setForm({ ...form, tests_list_json: tests });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e, shouldPrint = false) => {
     e.preventDefault();
+    printAfterSaveRef.current = shouldPrint;
+    if (!form.patient_id) {
+      printAfterSaveRef.current = false;
+      toast.error('اختر المريض قبل إرسال طلب الفحوصات');
+      return;
+    }
+    if (!form.doctor_id) {
+      printAfterSaveRef.current = false;
+      toast.error('اختر الطبيب قبل إرسال طلب الفحوصات');
+      return;
+    }
     const filteredTests = form.tests_list_json.filter(t => (t.test_name || '').trim());
-    if (filteredTests.length === 0) return alert('أضف فحصاً واحداً على الأقل');
+    if (filteredTests.length === 0) {
+      printAfterSaveRef.current = false;
+      toast.error('أضف فحصاً واحداً على الأقل');
+      return;
+    }
     createRequest.mutate({ ...form, tests_list_json: filteredTests });
   };
 
@@ -147,7 +169,7 @@ export default function LabRequestForm() {
 
         <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={() => navigate('/lab')} icon={X}>إلغاء</Button>
-          <Button type="button" variant="outline" icon={Printer} onClick={handleSubmit}>حفظ وطباعة</Button>
+          <Button type="button" variant="outline" icon={Printer} onClick={(e) => handleSubmit(e, true)}>حفظ وطباعة</Button>
           <Button type="submit" icon={Save} loading={createRequest.isLoading}>إرسال الطلب</Button>
         </div>
       </form>

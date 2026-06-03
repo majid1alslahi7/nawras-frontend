@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import SmartSelect from '../../components/ui/SmartSelect';
 import { Save, X, ArrowRight, Plus, Trash } from 'lucide-react';
 import api from '../../services/api';
+import { toast } from 'sonner';
 
 export default function LabResultForm() {
   const { requestId } = useParams();
@@ -73,13 +74,44 @@ export default function LabResultForm() {
     setForm({ ...form, results_json: rows });
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!form.lab_request_id) {
+      toast.error('اختر طلب الفحوصات أولاً');
+      return;
+    }
+
+    const rows = form.results_json
+      .map((row) => ({
+        ...row,
+        test_name: (row.test_name || '').trim(),
+        result: (row.result || '').trim(),
+        unit: (row.unit || '').trim(),
+        normal_range: (row.normal_range || '').trim(),
+      }))
+      .filter((row) => row.test_name || row.result || row.unit || row.normal_range);
+
+    if (rows.length === 0) {
+      toast.error('أدخل نتيجة فحص واحدة على الأقل');
+      return;
+    }
+
+    if (rows.some((row) => !row.test_name || !row.result)) {
+      toast.error('كل نتيجة يجب أن تحتوي اسم الفحص والنتيجة');
+      return;
+    }
+
+    createResult.mutate({ ...form, results_json: rows });
+  };
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-4">
         <Button variant="ghost" icon={ArrowRight} onClick={() => navigate('/lab')}>العودة</Button>
         <h1 className="text-2xl font-bold text-[#132D42]">إدخال نتائج فحوصات</h1>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); createResult.mutate(form); }} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader><CardTitle className="text-[#153751]">معلومات الطلب</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">

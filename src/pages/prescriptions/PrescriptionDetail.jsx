@@ -4,7 +4,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { ArrowRight, Printer, Pill } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
-import api, { apiUrl } from '../../services/api';
+import api from '../../services/api';
+import { openApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function PrescriptionDetail() {
   const { id } = useParams();
@@ -29,7 +31,7 @@ export default function PrescriptionDetail() {
           <Button variant="ghost" icon={ArrowRight} onClick={() => navigate('/prescriptions')}>العودة</Button>
           <h1 className="text-2xl font-bold text-[#132D42]">تفاصيل الوصفة</h1>
         </div>
-        <Button icon={Printer} onClick={() => window.open(apiUrl(`/prescriptions/${rx.id}/pdf`))}>طباعة</Button>
+        <Button icon={Printer} onClick={() => openApiFile(`/prescriptions/${rx.id}/pdf`, `prescription-${rx.id}.pdf`).catch(() => toast.error('تعذرت طباعة الوصفة'))}>طباعة</Button>
       </div>
 
       <Card>

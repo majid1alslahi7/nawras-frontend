@@ -3,8 +3,10 @@ import { useGetQuery } from '../../hooks/useApi';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
-import { TrendingUp, Users, Stethoscope, Download, Filter } from 'lucide-react';
+import { TrendingUp, Users, Stethoscope, Download, Filter, FileSpreadsheet, FileText, Activity } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
+import { downloadApiFile } from '../../lib/downloads';
+import { toast } from 'sonner';
 
 export default function ReportsPage() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -14,12 +16,39 @@ export default function ReportsPage() {
   const { data: patientStats } = useGetQuery('patient-stats', '/reports/patient-stats');
   const { data: doctorStats } = useGetQuery('doctor-stats', '/reports/doctor-stats');
   const { data: patientsReport } = useGetQuery('patients-report', '/reports/patients');
+  const { data: visitsReport } = useGetQuery('visits-report', '/reports/visits');
+  const [exporting, setExporting] = useState(null);
+
+  const exportReport = async (report, format = 'pdf') => {
+    const exportKey = `${report}-${format}`;
+    const params = new URLSearchParams({
+      format,
+      month: String(month),
+      year: String(year),
+    });
+
+    setExporting(exportKey);
+    try {
+      const fileMonth = String(month).padStart(2, '0');
+      const fileName = `nawras-${report}-${year}-${fileMonth}.${format}`;
+      const mimeType = format === 'csv' ? 'text/csv;charset=utf-8' : 'application/pdf';
+      await downloadApiFile(`/reports/${report}/export?${params.toString()}`, fileName, mimeType);
+      toast.success('تم تجهيز التقرير للتنزيل');
+    } catch {
+      toast.error('تعذر تصدير التقرير، تحقق من الاتصال والصلاحيات');
+    } finally {
+      setExporting(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div><h1 className="text-3xl font-bold text-[#132D42]">التقارير</h1><p className="text-[#7E8991] mt-1">تقارير وإحصائيات متقدمة</p></div>
-        <Button icon={Download} variant="outline">تصدير التقرير</Button>
+        <div className="flex gap-2">
+          <Button icon={Download} variant="outline" loading={exporting === 'all-pdf'} onClick={() => exportReport('all', 'pdf')}>تصدير شامل PDF</Button>
+          <Button icon={FileSpreadsheet} variant="outline" loading={exporting === 'all-csv'} onClick={() => exportReport('all', 'csv')}>CSV</Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -37,7 +66,10 @@ export default function ReportsPage() {
 
       {/* Financial Report */}
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2 text-[#153751]"><TrendingUp className="w-5 h-5" /> التقرير المالي</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-[#153751]"><TrendingUp className="w-5 h-5" /> التقرير المالي</CardTitle>
+          <ExportButtons onPdf={() => exportReport('financial', 'pdf')} onCsv={() => exportReport('financial', 'csv')} pdfLoading={exporting === 'financial-pdf'} csvLoading={exporting === 'financial-csv'} />
+        </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-center mb-6">
             <div className="p-4 bg-[#2E8B73]/5 rounded-2xl"><p className="text-2xl font-bold text-[#2E8B73]">{formatCurrency(financial?.total_income || 0)}</p><p className="text-sm text-[#7E8991]">الإيرادات</p></div>
@@ -61,7 +93,10 @@ export default function ReportsPage() {
       {/* Patient Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-[#153751]"><Users className="w-5 h-5" /> إحصائيات المرضى</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2 text-[#153751]"><Users className="w-5 h-5" /> إحصائيات المرضى</CardTitle>
+            <ExportButtons onPdf={() => exportReport('patients', 'pdf')} onCsv={() => exportReport('patients', 'csv')} pdfLoading={exporting === 'patients-pdf'} csvLoading={exporting === 'patients-csv'} />
+          </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-[#F2EFEE] rounded-2xl"><p className="text-xl font-bold text-[#153751]">{patientStats?.total_patients || 0}</p><p className="text-xs text-[#7E8991]">إجمالي المرضى</p></div>
@@ -77,11 +112,22 @@ export default function ReportsPage() {
                 ))}
               </div>
             )}
+            {patientsReport?.by_blood_type && (
+              <div className="mt-4 space-y-2">
+                <p className="font-semibold text-sm text-[#132D42]">حسب فصيلة الدم</p>
+                {patientsReport.by_blood_type.map((item, i) => (
+                  <div key={i} className="flex justify-between text-sm"><span>{item.blood_type || 'غير محدد'}</span><span className="font-semibold">{item.count}</span></div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2 text-[#153751]"><Stethoscope className="w-5 h-5" /> إحصائيات الطبيب</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2 text-[#153751]"><Stethoscope className="w-5 h-5" /> إحصائيات الطبيب</CardTitle>
+            <ExportButtons onPdf={() => exportReport('doctor-stats', 'pdf')} onCsv={() => exportReport('doctor-stats', 'csv')} pdfLoading={exporting === 'doctor-stats-pdf'} csvLoading={exporting === 'doctor-stats-csv'} />
+          </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-[#F2EFEE] rounded-2xl"><p className="text-xl font-bold text-[#153751]">{doctorStats?.visits_today || 0}</p><p className="text-xs text-[#7E8991]">زيارات اليوم</p></div>
@@ -92,6 +138,43 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-[#153751]"><Activity className="w-5 h-5" /> تقرير الزيارات</CardTitle>
+          <ExportButtons onPdf={() => exportReport('visits', 'pdf')} onCsv={() => exportReport('visits', 'csv')} pdfLoading={exporting === 'visits-pdf'} csvLoading={exporting === 'visits-csv'} />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div className="p-4 bg-[#153751]/5 rounded-2xl">
+              <p className="text-2xl font-bold text-[#153751]">{visitsReport?.today || 0}</p>
+              <p className="text-sm text-[#7E8991]">زيارات اليوم</p>
+            </div>
+            <div className="p-4 bg-[#1E5A78]/5 rounded-2xl">
+              <p className="text-2xl font-bold text-[#1E5A78]">{visitsReport?.this_month || 0}</p>
+              <p className="text-sm text-[#7E8991]">زيارات هذا الشهر</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="font-semibold text-sm text-[#132D42]">حسب الحالة</p>
+            {visitsReport?.by_status?.map((item, i) => (
+              <div key={i} className="flex justify-between items-center p-3 bg-[#F2EFEE] rounded-2xl text-sm">
+                <span>{item.status || 'غير محدد'}</span>
+                <span className="font-semibold text-[#153751]">{item.count}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ExportButtons({ onPdf, onCsv, pdfLoading, csvLoading }) {
+  return (
+    <div className="flex gap-2 shrink-0">
+      <Button variant="ghost" size="sm" icon={FileText} loading={pdfLoading} onClick={onPdf}>PDF</Button>
+      <Button variant="ghost" size="sm" icon={FileSpreadsheet} loading={csvLoading} onClick={onCsv}>CSV</Button>
     </div>
   );
 }
