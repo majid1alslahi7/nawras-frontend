@@ -1,8 +1,6 @@
-const CACHE_NAME = 'nawras-pwa-v3';
+const CACHE_NAME = 'nawras-pwa-v4';
 
 const STATIC_ASSETS = [
-  '/',
-  '/dashboard',
   '/manifest.webmanifest',
   '/favicon.webp',
   '/brand/nawras-logo.webp',
@@ -27,12 +25,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
 
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  const acceptsHtml = request.headers.get('accept')?.includes('text/html');
+  if (request.mode === 'navigate' || acceptsHtml) {
     event.respondWith(fetch(request));
     return;
   }
