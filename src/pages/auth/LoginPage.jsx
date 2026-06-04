@@ -23,8 +23,12 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const submittedPhone = String(formData.get('phone') || phone).trim();
+    const submittedPassword = String(formData.get('password') || password);
+
     try {
-      const data = await login(phone, password);
+      const data = await login(submittedPhone, submittedPassword);
       const role = data.user.role;
 
       actionToast.success(`أهلاً ${data.user.full_name}، سيتم فتح النظام الآن.`, {
@@ -56,11 +60,11 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-[#132D42] mb-1.5">رقم الهاتف</label>
-          <Input icon={Phone} type="tel" placeholder="777123456" value={phone} onChange={(e) => setPhone(e.target.value)} required dir="ltr" className="text-left" />
+          <Input name="phone" autoComplete="tel" icon={Phone} type="tel" placeholder="777123456" value={phone} onChange={(e) => setPhone(e.target.value)} required dir="ltr" className="text-left" />
         </div>
         <div>
           <label className="block text-sm font-medium text-[#132D42] mb-1.5">كلمة المرور</label>
-          <Input icon={Lock} type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required dir="ltr" className="text-left" />
+          <Input name="password" autoComplete="current-password" icon={Lock} type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required dir="ltr" className="text-left" />
         </div>
         <Button type="submit" className="w-full" size="lg" loading={isLoading} icon={LogIn}>تسجيل الدخول</Button>
       </form>
